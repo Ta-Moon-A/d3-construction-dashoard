@@ -1,0 +1,64 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Construction Dashbaord </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body translate="no">
+
+  <div  style="position: relative;">
+      <div id ="myLine"  style="float: left;">
+          <p>Line Chart</p>
+      </div>
+
+      <div id ="myPie1" style="float: left;">
+          <p>Pie 1 Chart</p>
+      </div>
+
+      <div id ="myPie2" style="float: left;">
+          <p>Pie 2 Chart</p>
+      </div>
+  </div>
+  <div >
+      <div id ="myCrossFilter" style="float: left;">
+          <p>Cross Filter</p>
+      </div>
+  </div>
+    
+
+   
+    <script src="js/d3.v4.min.js"></script>
+    <script src="js/processData.js"></script>
+    <script src="js/d3scriptfilter.js"></script>
+    <script src="js/d3scriptline.js"></script>
+    <script src="js/d3scriptpie.js"></script>
+
+    <script>
+          var lineChart = renderLineChart()
+                         .data('Pass Something Here and use it as attrs.data')
+         
+         var pie1Chart = renderPieChart()
+                        .data('Pass Something Here and use it as attrs.data')
+
+          var pie2Chart = renderPieChart()
+                         .data('Pass Something Here and use it as attrs.data')
+
+          var filterChart = renderCrossFilter()
+                         .data('Pass Something Here and use it as attrs.data')
+                         .onFilterChange(d=>{
+                             pie2Chart.data(d);
+                             pie1Chart.data(d);
+                             lineChart.data(d);
+                         })
+           
+          d3.select("#myLine").call(lineChart);
+          d3.select("#myPie1").call(pie1Chart);
+          d3.select("#myPie2").call(pie2Chart);
+          d3.select("#myCrossFilter").call(filterChart);
+        
+    </script>
+
+
+</body>
+</html>
