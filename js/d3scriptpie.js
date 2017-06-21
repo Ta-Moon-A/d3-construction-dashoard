@@ -11,7 +11,8 @@ function renderPieChart(params) {
         marginRight: 5,
         marginLeft: 5,
         showCenterText:false,
-        data: null
+        data: null,
+        radius : 100
     };
 
 
@@ -32,6 +33,14 @@ function renderPieChart(params) {
     //main chart object
     var main = function (selection) {
         selection.each(function () {
+
+
+var dataset = [
+          { label: 'Abulia', value: 10 },
+          { label: 'Betelgeuse', value: 20 },
+          { label: 'Cantaloupe', value: 30 },
+          { label: 'Dijkstra', value: 40 }
+        ];
 
             //calculated properties
             var calc = {}
@@ -54,11 +63,30 @@ function renderPieChart(params) {
             var chart = svg.append('g')
                 .attr('width', calc.chartWidth)
                 .attr('height', calc.chartHeight)
-                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + calc.chartTopMargin + ')')
+                //.attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + calc.chartTopMargin + ')')
+                .attr('transform', 'translate(' + (calc.chartWidth / 2) +',' + (calc.chartHeight / 2) + ')');
+
+            var color = d3.scaleOrdinal(d3.schemeCategory20b);
+
+            var arc = d3.arc()
+                        .innerRadius(0)
+                        .outerRadius(attrs.radius);
+
+            var pie = d3.pie()
+                        .value(function(d){ return  d.value;  })
+                        .sort(null);
 
 
 
-
+            var path = chart.selectAll('path')
+                            .data(pie(attrs.data.data))
+                            .enter()
+                            .append('path')
+                            .attr('d', arc)
+                            .attr('fill', function(d,i){
+                               return color(d.data.label);
+                            });
+             
 
             // smoothly handle data updating
             updateData = function () {

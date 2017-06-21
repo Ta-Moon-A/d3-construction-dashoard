@@ -98,8 +98,8 @@ function renderCrossFilter(params) {
 
 
      main.onFilterChange = function(chartUpdateFunc){
-         debugger;
-        chartUpdateFunc(globalData);
+         attrs.chartUpdateFunc = chartUpdateFunc;
+        return main;
     }
 
     return main;

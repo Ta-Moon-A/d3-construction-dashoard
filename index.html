@@ -20,7 +20,7 @@
           <p>Pie 2 Chart</p>
       </div>
   </div>
-  <div >
+  <div>
       <div id ="myCrossFilter" style="float: left;">
           <p>Cross Filter</p>
       </div>
@@ -29,24 +29,59 @@
 
    
     <script src="js/d3.v4.min.js"></script>
-    <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
     <script src="js/d3scriptline.js"></script>
     <script src="js/d3scriptpie.js"></script>
 
     <script>
+        
+        
+    </script>
+
+<script>
+
+
+    
+var globalData = [];
+
+
+d3.csv("data/Constructions.csv")
+  .row(function(d,i) { 
+           var yearlyData = [];
+           
+           for (var property in d) {
+                if (d.hasOwnProperty(property)) {
+                    if(!isNaN(property))
+                    {
+                         yearlyData.push({
+                             year : property,
+                             value : d[property]
+                         });
+                    }
+                }
+            }
+
+          return {
+                   region: d.Region, 
+                   yearlyData: yearlyData
+                }; 
+            })
+   .get(function(error, callBackData) 
+      {  
+          
           var lineChart = renderLineChart()
                          .data('Pass Something Here and use it as attrs.data')
          
-         var pie1Chart = renderPieChart()
-                        .data('Pass Something Here and use it as attrs.data')
+          var pie1Chart = renderPieChart()
+                         .data({title : "test1", data : [{value : 1, label : "ragaca"}]})
 
           var pie2Chart = renderPieChart()
-                         .data('Pass Something Here and use it as attrs.data')
+                         .data({title : "test1", data : [{value : 1, label : "ragaca"}]})
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
                          .onFilterChange(d=>{
+                             debugger;
                              pie2Chart.data(d);
                              pie1Chart.data(d);
                              lineChart.data(d);
@@ -56,9 +91,13 @@
           d3.select("#myPie1").call(pie1Chart);
           d3.select("#myPie2").call(pie2Chart);
           d3.select("#myCrossFilter").call(filterChart);
-        
-    </script>
 
+           
+      });
+
+
+
+</script>
 
 </body>
 </html>
