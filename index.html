@@ -3,6 +3,28 @@
     <meta charset="UTF-8">
     <title>Construction Dashbaord </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+     body * {
+         font-family : 'Helvetica'
+     }
+    .toolTip {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        position: absolute;
+        display: none;
+        width: auto;
+        height: auto;
+        /*background: none repeat scroll 0 0 white;*/
+        background: rgba(255,255,255,1);	
+        border: 0 none;
+        border-radius: 8px 8px 8px 8px;
+        box-shadow: -3px 3px 15px #888888;
+        color: black;
+        font: 12px sans-serif;
+        padding: 5px;
+        text-align: center;
+       
+    }
+    </style>
 </head>
 
 <body translate="no">
@@ -13,11 +35,11 @@
       </div>
 
       <div id ="myPie1" style="float: left;">
-          <p>Pie 1 Chart</p>
+          <p></p>
       </div>
 
       <div id ="myPie2" style="float: left;">
-          <p>Pie 2 Chart</p>
+          <p></p>
       </div>
   </div>
   <div>
@@ -25,58 +47,48 @@
           <p>Cross Filter</p>
       </div>
   </div>
-    
-
-   
     <script src="js/d3.v4.min.js"></script>
+    <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
     <script src="js/d3scriptline.js"></script>
     <script src="js/d3scriptpie.js"></script>
-
-    <script>
-        
-        
-    </script>
+     <script src="js/tooltip.js"></script>
 
 <script>
 
-
-    
-var globalData = [];
-
-
-d3.csv("data/Constructions.csv")
-  .row(function(d,i) { 
-           var yearlyData = [];
-           
-           for (var property in d) {
-                if (d.hasOwnProperty(property)) {
-                    if(!isNaN(property))
-                    {
-                         yearlyData.push({
-                             year : property,
-                             value : d[property]
-                         });
+    d3.csv("data/Constructions.csv", function(data) {
+        var result = [];
+        data.forEach(function(d) {
+            for (var property in d) {
+                    if (d.hasOwnProperty(property)) {
+                        if(!isNaN(property))
+                        {
+                            result.push({
+                                region : d.Region,
+                                year : property,
+                                value : d[property]
+                            });
+                        }
                     }
                 }
-            }
+        });
 
-          return {
-                   region: d.Region, 
-                   yearlyData: yearlyData
-                }; 
-            })
-   .get(function(error, callBackData) 
-      {  
-          
-          var lineChart = renderLineChart()
+        var dataGroupedByRegion = GetRegionData(result);
+        var dataGroupedByYear = GetYearlyData(result);
+       console.log(dataGroupedByYear);
+
+
+
+        var lineChart = renderLineChart()
                          .data('Pass Something Here and use it as attrs.data')
          
           var pie1Chart = renderPieChart()
-                         .data({title : "test1", data : [{value : 1, label : "ragaca"}]})
+                         .data({title : "Sum Of Constructions By Region", data : dataGroupedByRegion, tooltip : false})
+                         .color('#796799')
 
           var pie2Chart = renderPieChart()
-                         .data({title : "test1", data : [{value : 1, label : "ragaca"}]})
+                         .data({title : "Average Construnctions Number By Years", data : dataGroupedByYear , tooltip : true })
+                        .color('#EF4836')
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
@@ -92,11 +104,9 @@ d3.csv("data/Constructions.csv")
           d3.select("#myPie2").call(pie2Chart);
           d3.select("#myCrossFilter").call(filterChart);
 
-           
-      });
+    });
 
-
-
+   
 </script>
 
 </body>
