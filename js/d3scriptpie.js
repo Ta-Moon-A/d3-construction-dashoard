@@ -128,9 +128,10 @@ function renderPieChart(params) {
                 .append('path')
                 .attr('d', arc)
                 .attr('fill', function (d, i, arr) {
-                    return attrs.color;
+                    return color(d.data.label);
+                   // return attrs.color;
                 })
-                .attr('opacity', (d, i, arr) => (i + 1) / arr.length)
+                //.attr('opacity', (d, i, arr) => (i + 1) / arr.length)
                 .attr('stroke', 'white')
 
 
@@ -208,7 +209,7 @@ function renderPieChart(params) {
                 displayTooltip(
                     true,
                     chart,
-                    
+                     attrs.tooltipRows,
                     labelArc.centroid(d)[0],
                     labelArc.centroid(d)[1],
                     d.data//,
@@ -218,7 +219,7 @@ function renderPieChart(params) {
 
 
             slices.on('mouseout', function (d) {
-                displayTooltip(false,chart);
+                displayTooltip(false,chart,  [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}],);
             });
 
             // smoothly handle data updating
@@ -235,7 +236,7 @@ function renderPieChart(params) {
 
 
 
-    ['svgWidth', 'svgHeight', 'showCenterText', 'color'].forEach(key => {
+    ['svgWidth', 'svgHeight', 'showCenterText', 'color','tooltipRows'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;

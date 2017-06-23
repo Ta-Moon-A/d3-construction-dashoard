@@ -1,11 +1,12 @@
 function displayTooltip(
     isDisplayed,
     container,
+    rows,
     x,
     y,
     hoveredElement,
-   
-    filterUrl
+    filterUrl,
+    
 ) {
     var tooltipProps = {
         tooltipRowHeight: 21,
@@ -17,13 +18,16 @@ function displayTooltip(
         heightOffset: 7,
         textColor: "#2C3E50",
         tooltipFill: "white",
-        rows: [{
-            left: "Id",
-            right: "{label}"
-        }, {
-            left: "{xItemId}",
-            right: "{value}"
-        }]
+        rows : rows
+        // rows: 
+        //   [{
+        //     left: "Region",
+        //     right: "{label}"
+        // }, {
+        //     left: "Quantity",
+        //     right: "{value}"
+        // }]
+
     };
 
     container.selectAll(".tooltipContent").remove();

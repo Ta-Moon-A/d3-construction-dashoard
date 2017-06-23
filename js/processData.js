@@ -21,7 +21,7 @@ function GetYearlyData(initialData)
                                .rollup(function(leaves){ 
                                           return { 
                                                    "label": leaves[0].year, 
-                                                   "value": d3.mean(leaves, function(d) {return parseFloat(d.value);})
+                                                   "value": Math.round(d3.mean(leaves, function(d) {return parseFloat(d.value);}), -2) 
                                                  } 
                          }).entries(initialData);
 

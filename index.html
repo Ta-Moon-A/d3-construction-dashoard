@@ -30,9 +30,9 @@
 <body translate="no">
 
   <div  style="position: relative;">
-      <div id ="myLine"  style="float: left;">
+      <!--<div id ="myLine"  style="float: left;">
           <p>Line Chart</p>
-      </div>
+      </div>-->
 
       <div id ="myPie1" style="float: left;">
           <p></p>
@@ -85,10 +85,12 @@
           var pie1Chart = renderPieChart()
                          .data({title : "Sum Of Constructions By Region", data : dataGroupedByRegion, tooltip : false})
                          .color('#796799')
+                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}])
 
           var pie2Chart = renderPieChart()
                          .data({title : "Average Construnctions Number By Years", data : dataGroupedByYear , tooltip : true })
                         .color('#EF4836')
+                        .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"}])
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
