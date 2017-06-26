@@ -12,7 +12,8 @@ function renderPieChart(params) {
         marginLeft: 70,
         showCenterText: false,
         data: null,
-        radius: 150
+        radius: 150,
+        silcesOpacity : 0.5
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -103,8 +104,8 @@ function renderPieChart(params) {
 
 
             var legendMiddleArc = d3.arc()
-                .innerRadius(calc.radius * 1.2)
-                .outerRadius(calc.radius * 1.2);
+                .innerRadius(calc.radius * 1.3)
+                .outerRadius(calc.radius * 1.3);
 
             var legendOuterArc = d3.arc()
                 .innerRadius(calc.radius * 2)
@@ -166,7 +167,7 @@ function renderPieChart(params) {
 
 
             line.enter().append("line").attr("class", "startLines")
-                .attr("x1", function (d) { debugger; return d.data.lineStartX })
+                .attr("x1", function (d) {  return d.data.lineStartX })
                 .attr("y1", function (d) { return d.data.lineStartY })
 
                 .attr("x2", function (d) { return d.data.lineMiddleX })
@@ -192,15 +193,36 @@ function renderPieChart(params) {
                 .text(function (d) { return d.data.label; })
                 .attr('x', function (d) { return d.data.lineEndX })
                 .attr('y', function (d) { return d.data.lineEndY; })
+                .attr('class', 'line-end-text')
                 .attr('fill', 'grey')
                 .attr('text-anchor', 'end')
                 .attr('alignment-baseline', 'middle')
                 .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
 
+            //  debugger;
+            
+            // outerLabels.selectAll('.line-end-text')
+            // .each( function (d, i) {
+            //         debugger;
+            //   var elem = d3.select(this)
+            //   var y = +elem.attr('y');
 
-            var div = d3.select("body").append("div").attr("class", "toolTip");
+            //   console.log(d.lineEndText, y);
 
+            //   outerLabels.selectAll('.line-end-text').each(function (l, j) {
+            //     var inY = +d3.select(this).attr('y');
 
+            //     if (i > 0 &&i>j && Math.abs(inY - y) < 8) {
+                 
+            //        console.log('before', inY, i, j,y );
+            //       y =y+ 12-Math.abs(inY - y);
+            //       console.log('after',inY, i, j,y );
+            //     }
+            //   })
+            //   console.log(d.lineEndText, y);
+            //    elem.attr('y',y)
+
+            // })
 
 
             // events 
@@ -209,17 +231,25 @@ function renderPieChart(params) {
                 displayTooltip(
                     true,
                     chart,
-                     attrs.tooltipRows,
-                    labelArc.centroid(d)[0],
-                    labelArc.centroid(d)[1],
+                    attrs.tooltipRows,
+                    'right',
+                    0,
+                    0,
+                   
                     d.data//,
                    // calc.dropShadowUrl
                 );
+
+                 slices.filter(v=>v!=d)
+                       .attr('opacity',attrs.silcesOpacity);
+
             });
 
 
             slices.on('mouseout', function (d) {
-                displayTooltip(false,chart,  [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}],);
+                displayTooltip(false,chart);
+
+                 slices.attr('opacity',1);
             });
 
             // smoothly handle data updating

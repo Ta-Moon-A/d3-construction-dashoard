@@ -2,12 +2,14 @@ function displayTooltip(
     isDisplayed,
     container,
     rows,
+    direction,
     x,
     y,
     hoveredElement,
     filterUrl,
-    
+  
 ) {
+    debugger;
     var tooltipProps = {
         tooltipRowHeight: 21,
         minSpaceBetweenColumns: 20,
@@ -19,15 +21,6 @@ function displayTooltip(
         textColor: "#2C3E50",
         tooltipFill: "white",
         rows : rows
-        // rows: 
-        //   [{
-        //     left: "Region",
-        //     right: "{label}"
-        // }, {
-        //     left: "Quantity",
-        //     right: "{value}"
-        // }]
-
     };
 
     container.selectAll(".tooltipContent").remove();
@@ -40,8 +33,13 @@ function displayTooltip(
         .append("g")
         .attr("class", "tooltipContent")
         .attr("pointer-events", "none");
+    debugger;
 
-    tooltipContentWrapper.attr("transform", `translate(${x},${y})`);
+
+
+
+
+    
 
     var tooltipWrapper = tooltipContentWrapper.append("g")
     .style('pointer-events','none');
@@ -102,6 +100,74 @@ function displayTooltip(
     var halfArrowLength = tooltipProps.arrowLength / 2;
     var halfWidth = maxWidth / 2;
     var fullWidth = maxWidth;
+    var halfHeight = height / 2;
+
+    var strPath = 
+            `M 0 0 
+
+                ${
+                    direction!='left'?'':
+                    `  L 0 ${halfHeight - halfArrowLength}
+                       L   ${-tooltipProps.arrowHeight} ${halfHeight}
+                       L 0 ${halfHeight + halfArrowLength}  `
+                }
+
+                L 0  ${height} 
+                
+                ${
+                       direction!='bottom'? '':
+                                      ` L ${halfWidth - halfArrowLength}  ${height} 
+                                        L ${halfWidth} ${height + tooltipProps.arrowHeight} 
+                                        L ${halfWidth + halfArrowLength} ${height}`
+                }
+               
+                L ${fullWidth} ${height}  
+
+               ${
+                    direction!='right'?'':
+                                  ` L ${fullWidth} ${halfHeight - halfArrowLength}
+                                    L  ${fullWidth + tooltipProps.arrowHeight} ${halfHeight}
+                                    L ${fullWidth} ${halfHeight + halfArrowLength}  `
+                }
+
+                
+                L ${fullWidth} 0 
+                
+                ${
+                    direction!='top'?'':
+                                     `L ${halfWidth + halfArrowLength} 0  
+                                      L ${halfWidth} ${-tooltipProps.arrowHeight} 
+                                      L ${halfWidth - halfArrowLength}  0 
+                                     `
+                }
+
+                 L 0 0 `;
+
+  
+    var tooltipTranslateConfig = {
+        left : {
+            x : (halfWidth + tooltipProps.arrowHeight),
+            y : (halfHeight + tooltipProps.arrowHeight)
+        },
+        bottom : {
+            x : 0,
+            y : 0 
+        },
+        right : {
+          x : -(halfWidth + tooltipProps.arrowHeight),
+          y : (halfHeight + tooltipProps.arrowHeight)
+        },
+        top :{
+            x : 0,
+            y : (height + 2  * tooltipProps.arrowHeight) 
+        }
+    };
+
+    // if(y < 0)
+    // {
+        tooltipContentWrapper.attr("transform", `translate(${x +  tooltipTranslateConfig[direction].x},${y + tooltipTranslateConfig[direction].y})`);
+    // }
+
 
     tooltipWrapper
         .select("path")
@@ -116,17 +182,7 @@ function displayTooltip(
                 L 300 0 
                 L 0 0 `
         )
-        .attr(
-            "d",
-            `M 0 0 
-                L 0  ${height} 
-                L ${halfWidth - halfArrowLength}  ${height} 
-                L ${halfWidth} ${height + tooltipProps.arrowHeight} 
-                L ${halfWidth + halfArrowLength} ${height}  
-                L ${fullWidth} ${height}  
-                L ${fullWidth} 0 
-                L 0 0 `
-        )
+        .attr('d',strPath )
         .attr("fill", tooltipProps.tooltipFill)
         //.attr("filter", `url(#${filterUrl})`);
 

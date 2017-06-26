@@ -90,7 +90,7 @@
           var pie2Chart = renderPieChart()
                          .data({title : "Average Construnctions Number By Years", data : dataGroupedByYear , tooltip : true })
                         .color('#EF4836')
-                        .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"}])
+                        .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"},{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"}])
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
