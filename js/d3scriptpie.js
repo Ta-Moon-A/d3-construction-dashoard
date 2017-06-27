@@ -13,7 +13,7 @@ function renderPieChart(params) {
         showCenterText: false,
         data: null,
         radius: 150,
-        silcesOpacity : 0.5
+        silcesOpacity: 0.5
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -55,16 +55,19 @@ function renderPieChart(params) {
 
             calc.radius = Math.min(calc.chartWidth, calc.chartHeight) / 3;
             calc.labelArcRadius = calc.radius / 2;
-
-
-
-
+           
+           debugger;
+           var format = d3.format(".2s");
+           attrs.data.data.forEach(function(d){
+              d.formatedValue = format(d.value);
+           });
 
             //drawing
             var svg = d3.select(this)
                 .append('svg')
                 .attr('width', attrs.svgWidth)
                 .attr('height', attrs.svgHeight)
+                .style('overflow', 'visible');
             // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
             // .attr("preserveAspectRatio", "xMidYMid meet")
 
@@ -73,11 +76,14 @@ function renderPieChart(params) {
                 .attr('transform', 'translate(' + ((calc.chartWidth / 2) + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin) + ')');
 
 
+            var chartTitle = svg.append('g')
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + 0+ ')');
+            
             // pie title 
-            svg.append("text")
+            chartTitle.append("text")
                 .text(attrs.data.title)
                 .attr('fill', 'black')
-                .attr('alignment-baseline', 'hanging');
+                .style('font-weight', 'bold');
 
 
             //var color = d3.interpolateRgbBasis(["#26C281", '#EF4836']);
@@ -117,12 +123,33 @@ function renderPieChart(params) {
             }
 
 
+            var shuffled = [];
+            
+            if (attrs.data.shuffleSlices)
+            {
+                debugger;
+                // shuffle array slices by angle size
+                var sorted = attrs.data.data.sort(function(a,b){  return d3.ascending(a.value, b.value); });
+                
+                for(var i = 0; i < sorted.length/2; i++)
+                {
+                    shuffled[2*i] = sorted[i];
+                    shuffled[2*i+1] = sorted[sorted.length -i-1];
+                }
+             }
+            else{
+                 shuffled = attrs.data.data.slice(0);
+            }
+            
+           
+
             var slices = chart.append("g")
                 .attr("class", "slicesGroup")
                 .selectAll('g')
-                .data(pie(attrs.data.data))
+                .data(pie(shuffled))
                 .enter()
-                .append('g');
+                .append('g')
+                .attr("class", "sliceGroup");
 
 
             var path = slices
@@ -130,10 +157,11 @@ function renderPieChart(params) {
                 .attr('d', arc)
                 .attr('fill', function (d, i, arr) {
                     return color(d.data.label);
-                   // return attrs.color;
+                    // return attrs.color;
                 })
                 //.attr('opacity', (d, i, arr) => (i + 1) / arr.length)
                 .attr('stroke', 'white')
+                .attr("class", "slicePath");
 
 
 
@@ -146,7 +174,8 @@ function renderPieChart(params) {
                 .attr('fill', 'white')
                 .attr('text-anchor', 'middle')
                 .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) < 30 ? 'none' : 'block'; })
-                   .style('pointer-events','none');
+                .style('pointer-events', 'none')
+                .attr("class", "innerLabel");
 
 
 
@@ -154,9 +183,9 @@ function renderPieChart(params) {
             var lines = chart.append("g").attr("class", "lines");
             var line = svg.select(".lines")
                 .selectAll("line")
-                .data(pie(attrs.data.data), function (d) { return d.data.label });
+                .data(pie(shuffled), function (d) { return d.data.label });
 
-            pie(attrs.data.data).forEach(function (d) {
+            pie(shuffled).forEach(function (d) {
                 d.data.lineStartX = legendInnerArc.centroid(d)[0];
                 d.data.lineStartY = legendInnerArc.centroid(d)[1];
                 d.data.lineMiddleX = legendMiddleArc.centroid(d)[0];
@@ -167,7 +196,7 @@ function renderPieChart(params) {
 
 
             line.enter().append("line").attr("class", "startLines")
-                .attr("x1", function (d) {  return d.data.lineStartX })
+                .attr("x1", function (d) { return d.data.lineStartX })
                 .attr("y1", function (d) { return d.data.lineStartY })
 
                 .attr("x2", function (d) { return d.data.lineMiddleX })
@@ -187,43 +216,18 @@ function renderPieChart(params) {
 
             var outerLabels = chart.append("g").attr("class", "outerLabels");
             var outerLabel = outerLabels.selectAll('text')
-                .data(pie(attrs.data.data))
+                .data(pie(shuffled))
                 .enter()
                 .append('text')
                 .text(function (d) { return d.data.label; })
                 .attr('x', function (d) { return d.data.lineEndX })
                 .attr('y', function (d) { return d.data.lineEndY; })
-                .attr('class', 'line-end-text')
                 .attr('fill', 'grey')
-                .attr('text-anchor', 'end')
+                .attr('text-anchor',  function(d){ return d.endAngle * (180 / Math.PI) > 180 ? 'end' : 'start';})
                 .attr('alignment-baseline', 'middle')
-                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
-
-            //  debugger;
-            
-            // outerLabels.selectAll('.line-end-text')
-            // .each( function (d, i) {
-            //         debugger;
-            //   var elem = d3.select(this)
-            //   var y = +elem.attr('y');
-
-            //   console.log(d.lineEndText, y);
-
-            //   outerLabels.selectAll('.line-end-text').each(function (l, j) {
-            //     var inY = +d3.select(this).attr('y');
-
-            //     if (i > 0 &&i>j && Math.abs(inY - y) < 8) {
-                 
-            //        console.log('before', inY, i, j,y );
-            //       y =y+ 12-Math.abs(inY - y);
-            //       console.log('after',inY, i, j,y );
-            //     }
-            //   })
-            //   console.log(d.lineEndText, y);
-            //    elem.attr('y',y)
-
-            // })
-
+                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
+                .style("font-size", "12px")
+                .attr('class', 'outerLabel');
 
             // events 
 
@@ -235,21 +239,19 @@ function renderPieChart(params) {
                     'right',
                     0,
                     0,
-                   
-                    d.data//,
-                   // calc.dropShadowUrl
+                    d.data
                 );
 
-                 slices.filter(v=>v!=d)
-                       .attr('opacity',attrs.silcesOpacity);
+                slices.filter(v => v != d)
+                    .attr('opacity', attrs.silcesOpacity);
 
             });
 
 
             slices.on('mouseout', function (d) {
-                displayTooltip(false,chart);
+                displayTooltip(false, chart);
 
-                 slices.attr('opacity',1);
+                slices.attr('opacity', 1);
             });
 
             // smoothly handle data updating
@@ -266,7 +268,7 @@ function renderPieChart(params) {
 
 
 
-    ['svgWidth', 'svgHeight', 'showCenterText', 'color','tooltipRows'].forEach(key => {
+    ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;

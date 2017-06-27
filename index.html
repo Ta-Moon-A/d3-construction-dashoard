@@ -30,9 +30,9 @@
 <body translate="no">
 
   <div  style="position: relative;">
-      <!--<div id ="myLine"  style="float: left;">
+      <div id ="myLine"  style="float: left;">
           <p>Line Chart</p>
-      </div>-->
+      </div>
 
       <div id ="myPie1" style="float: left;">
           <p></p>
@@ -42,11 +42,11 @@
           <p></p>
       </div>
   </div>
-  <div>
+  <!--<div>
       <div id ="myCrossFilter" style="float: left;">
           <p>Cross Filter</p>
       </div>
-  </div>
+  </div>-->
     <script src="js/d3.v4.min.js"></script>
     <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
@@ -83,19 +83,26 @@
                          .data('Pass Something Here and use it as attrs.data')
          
           var pie1Chart = renderPieChart()
-                         .data({title : "Sum Of Constructions By Region", data : dataGroupedByRegion, tooltip : false})
+                         .data({title : "Sum Of Constructions By Region", 
+                                data : dataGroupedByRegion,
+                                tooltip : true,
+                                outerLabel : true,
+                                shuffleSlices : true})
                          .color('#796799')
-                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}])
+                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{formatedValue}"}])
 
           var pie2Chart = renderPieChart()
-                         .data({title : "Average Construnctions Number By Years", data : dataGroupedByYear , tooltip : true })
-                        .color('#EF4836')
-                        .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"},{ left: "Year", right: "{label}"},{left: "Quantity", right: "{value}"}])
+                         .data({title : "Average Construnctions Number By Years", 
+                                data : dataGroupedByYear, 
+                                tooltip : true,
+                                outerLabel : true,
+                                shuffleSlices : false})
+                         .color('#EF4836')
+                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{formatedValue}"}])
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
                          .onFilterChange(d=>{
-                             debugger;
                              pie2Chart.data(d);
                              pie1Chart.data(d);
                              lineChart.data(d);

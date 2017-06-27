@@ -9,8 +9,7 @@ function displayTooltip(
     filterUrl,
   
 ) {
-    debugger;
-    var tooltipProps = {
+     var tooltipProps = {
         tooltipRowHeight: 21,
         minSpaceBetweenColumns: 20,
         fontSize: 13,
@@ -33,16 +32,9 @@ function displayTooltip(
         .append("g")
         .attr("class", "tooltipContent")
         .attr("pointer-events", "none");
-    debugger;
-
-
-
-
-
     
-
     var tooltipWrapper = tooltipContentWrapper.append("g")
-    .style('pointer-events','none');
+                                              .style('pointer-events','none');
 
     tooltipWrapper.append("path");
 
@@ -83,7 +75,7 @@ function displayTooltip(
             row.select(".left").node().getBBox().width +
             row.select(".right").node().getBBox().width +
             tooltipProps.minSpaceBetweenColumns;
-        debugger;
+        
         if (currentWidth > maxWidth) {
             maxWidth = currentWidth;
         }

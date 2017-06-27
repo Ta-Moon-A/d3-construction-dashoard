@@ -17,13 +17,14 @@ function GetRegionData(initialData)
 
 function GetYearlyData(initialData)
 {
+     
      var nestedData = d3.nest().key(function(d){ return d.year; })
                                .rollup(function(leaves){ 
                                           return { 
                                                    "label": leaves[0].year, 
-                                                   "value": Math.round(d3.mean(leaves, function(d) {return parseFloat(d.value);}), -2) 
+                                                   "value": Math.round(d3.mean(leaves, function(d) {return parseFloat(d.value);}), -2)
                                                  } 
                          }).entries(initialData);
-
+   debugger;
       return nestedData.map(function(d){return d.value;});
 }
