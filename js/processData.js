@@ -25,6 +25,5 @@ function GetYearlyData(initialData)
                                                    "value": Math.round(d3.mean(leaves, function(d) {return parseFloat(d.value);}), -2)
                                                  } 
                          }).entries(initialData);
-   debugger;
-      return nestedData.map(function(d){return d.value;});
+   return nestedData.map(function(d){return d.value;});
 }

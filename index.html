@@ -60,13 +60,7 @@
 
 <script>
 
-    function TestPies(){
-        pie2Chart.data({title : "Average Construnctions Number By Years", 
-                        data : [], 
-                        tooltip : true,
-                        outerLabel : true,
-                        shuffleSlices : false})
-    };
+   var pie2Chart;
 
     d3.csv("data/Constructions.csv", function(data) {
         var result = [];
@@ -85,10 +79,11 @@
                 }
         });
 
+        
+
         var dataGroupedByRegion = GetRegionData(result);
         var dataGroupedByYear = GetYearlyData(result);
       
-
 
 
           var lineChart = renderLineChart()
@@ -101,16 +96,16 @@
                                 outerLabel : true,
                                 shuffleSlices : true})
                          .color('#796799')
-                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{formatedValue}"}])
+                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}])
 
-          var pie2Chart = renderPieChart()
+           pie2Chart = renderPieChart()
                          .data({title : "Average Construnctions Number By Years", 
                                 data : dataGroupedByYear, 
                                 tooltip : true,
                                 outerLabel : true,
                                 shuffleSlices : false})
                          .color('#EF4836')
-                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{formatedValue}"}])
+                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{value}"}])
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
@@ -127,7 +122,36 @@
 
     });
 
-   
+    function TestPies(){
+        var result = [{"region":"Tbilisi","year":"2011","value":"425669"},
+                      {"region":"Tbilisi","year":"2012","value":"821126"},
+                       {"region":"Adjara","year":"2013","value":"318193"},
+                    {"region":"Guria","year":"2011","value":"21605"},
+                    {"region":"Guria","year":"2013","value":"6293"},
+                     {"region":"Imereti","year":"2011","value":"49860"},
+                      {"region":"Imereti","year":"2012","value":"99960"},
+                      {"region":"Imereti","year":"2013","value":"60804"},
+                      {"region":"Kakheti","year":"2014","value":"87775"},
+                     {"region":"Mtskheta","year":"2011","value":"34996"},
+                     {"region":"Samegrelo","year":"2011","value":"43158"},
+                      {"region":"Samegrelo","year":"2012","value":"62885"},
+                    {"region":"Samtskhe","year":"2011","value":"21905"},
+                      {"region":"Shida Kartli","year":"2011","value":"9391"},
+                      {"region":"Racha","year":"2011","value":"8243"},
+                      {"region":"Racha","year":"2012","value":"810"},
+                     {"region":"Kvemo Kartli","year":"2011","value":"48040"}];
+
+        var dataGroupedByRegion = GetRegionData(result);
+        var dataGroupedByYear = GetYearlyData(result);
+        
+        
+
+        pie2Chart.data({title : "Average Construnctions Number By Years", 
+                        data : dataGroupedByYear, 
+                        tooltip : true,
+                        outerLabel : true,
+                        shuffleSlices : false});
+    };
 </script>
 
 </body>

@@ -1,6 +1,3 @@
-
-
-
 function renderPieChart(params) {
     // exposed variables
     var attrs = {
@@ -168,8 +165,7 @@ function renderPieChart(params) {
             
             if (attrs.data.shuffleSlices)
             {
-                debugger;
-                // shuffle array slices by angle size
+                 // shuffle array slices by angle size
                 var sorted = attrs.data.data.sort(function(a,b){  return d3.ascending(a.value, b.value); });
                 
                 for(var i = 0; i < sorted.length/2; i++)
@@ -187,7 +183,7 @@ function renderPieChart(params) {
             var slices = chart.append("g")
                 .attr("class", "slicesGroup")
                 .selectAll('g')
-                .data(pie(shuffled))
+                .data(pie(shuffled),d=>d.data.label)
                 .enter()
                 .append('g')
                 .attr("class", "sliceGroup");
@@ -257,7 +253,7 @@ function renderPieChart(params) {
 
             var outerLabels = chart.append("g").attr("class", "outerLabels");
             var outerLabel = outerLabels.selectAll('text')
-                .data(pie(shuffled))
+                .data(pie(shuffled),d=>d.data.label)
                 .enter()
                 .append('text')
                 .text(function (d) { return d.data.label; })
@@ -300,8 +296,26 @@ function renderPieChart(params) {
 
             // smoothly handle data updating
             updateData = function () {
-               debugger;
+               var newData = attrs.data.data;
+               var oldData = slices.data().map(function(d){
+                   return {
+                           value : d.data.value,
+                           label : d.data.label
+                        }
+               });
 
+              for(var i = 0; i < oldData.length; i++)
+               {
+                   var obj = newData.filter(function ( obj ) { return obj.label === oldData[i].label; })[0];
+                    if(obj == null)
+                    {
+                        oldData[i].value = 0;
+                        newData.push(oldData[i]);
+                    }
+               }
+             
+               slices = slices.data(pie(newData),d=>d.data.label); // compute the new angles
+               slices.select('path').attr("d", arc); // redraw the arcs
             }
 
 
