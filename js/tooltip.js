@@ -176,7 +176,7 @@ function displayTooltip(
         )
         .attr('d',strPath )
         .attr("fill", tooltipProps.tooltipFill)
-        //.attr("filter", `url(#${filterUrl})`);
+        .attr("filter", `url(#${filterUrl})`);
 
     tooltipWrapper.attr(
         "transform",

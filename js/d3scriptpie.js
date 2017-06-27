@@ -13,7 +13,7 @@ function renderPieChart(params) {
         showCenterText: false,
         data: null,
         radius: 150,
-        silcesOpacity: 0.5
+        slicesOpacity: 0.3
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -56,7 +56,6 @@ function renderPieChart(params) {
             calc.radius = Math.min(calc.chartWidth, calc.chartHeight) / 3;
             calc.labelArcRadius = calc.radius / 2;
            
-           debugger;
            var format = d3.format(".2s");
            attrs.data.data.forEach(function(d){
               d.formatedValue = format(d.value);
@@ -71,6 +70,48 @@ function renderPieChart(params) {
             // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
             // .attr("preserveAspectRatio", "xMidYMid meet")
 
+
+            //################################   FILTERS  &   SHADOWS  ##################################
+
+            // Add filters ( Shadows)
+            var defs = svg.append("defs");
+
+            calc.dropShadowUrl = "id";
+            calc.filterUrl = `url(#id)`;
+            //Drop shadow filter
+            var dropShadowFilter = defs
+            .append("filter")
+            .attr("id",'id')
+            .attr("height", "130%");
+            dropShadowFilter
+            .append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 5)
+            .attr("result", "blur");
+            dropShadowFilter
+            .append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 4)
+            .attr("result", "offsetBlur");
+
+            dropShadowFilter
+            .append("feFlood")
+            .attr("flood-color", "black")
+            .attr("flood-opacity", "0.4")
+            .attr("result", "offsetColor");
+            dropShadowFilter
+            .append("feComposite")
+            .attr("in", "offsetColor")
+            .attr("in2", "offsetBlur")
+            .attr("operator", "in")
+            .attr("result", "offsetBlur");
+
+            var feMerge = dropShadowFilter.append("feMerge");
+            feMerge.append("feMergeNode").attr("in", "offsetBlur");
+            feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+            // ------------------------------------------------------------------- filters end -----------------------------------------------------
 
             var chart = svg.append('g')
                 .attr('transform', 'translate(' + ((calc.chartWidth / 2) + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin) + ')');
@@ -239,24 +280,27 @@ function renderPieChart(params) {
                     'right',
                     0,
                     0,
-                    d.data
+                    d.data,
+                    calc.dropShadowUrl
                 );
 
-                slices.filter(v => v != d)
-                    .attr('opacity', attrs.silcesOpacity);
+
+                d3.select(this).attr('filter', calc.filterUrl);
+
+                slices.filter(v => v != d) .attr('opacity', attrs.slicesOpacity);
 
             });
 
 
             slices.on('mouseout', function (d) {
                 displayTooltip(false, chart);
+                slices.attr('opacity', 1).attr('filter','none');
 
-                slices.attr('opacity', 1);
             });
 
             // smoothly handle data updating
             updateData = function () {
-
+               debugger;
 
             }
 

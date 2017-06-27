@@ -30,6 +30,10 @@
 <body translate="no">
 
   <div  style="position: relative;">
+      <div>
+           <button onclick="TestPies()">Test Pies</button>
+           <button onclick="testLine()">Test Line</button>
+      </div>
       <div id ="myLine"  style="float: left;">
           <p>Line Chart</p>
       </div>
@@ -52,9 +56,17 @@
     <script src="js/d3scriptfilter.js"></script>
     <script src="js/d3scriptline.js"></script>
     <script src="js/d3scriptpie.js"></script>
-     <script src="js/tooltip.js"></script>
+    <script src="js/tooltip.js"></script>
 
 <script>
+
+    function TestPies(){
+        pie2Chart.data({title : "Average Construnctions Number By Years", 
+                        data : [], 
+                        tooltip : true,
+                        outerLabel : true,
+                        shuffleSlices : false})
+    };
 
     d3.csv("data/Constructions.csv", function(data) {
         var result = [];
@@ -75,11 +87,11 @@
 
         var dataGroupedByRegion = GetRegionData(result);
         var dataGroupedByYear = GetYearlyData(result);
-       console.log(dataGroupedByYear);
+      
 
 
 
-        var lineChart = renderLineChart()
+          var lineChart = renderLineChart()
                          .data('Pass Something Here and use it as attrs.data')
          
           var pie1Chart = renderPieChart()
