@@ -273,7 +273,7 @@ function renderPieChart(params) {
                     true,
                     chart,
                     attrs.tooltipRows,
-                    'right',
+                    GetTootipDirectionByAngle(d.endAngle),
                     0,
                     0,
                     d.data,
@@ -348,6 +348,28 @@ function renderPieChart(params) {
         }
         return main;
     }
+
+
+   function GetTootipDirectionByAngle(angle)
+     {
+         angle = angle * (180 / Math.PI);
+        
+          if(angle > 0 && angle <= 90)
+          {
+              return 'top';
+          }
+          else if(angle > 90 && angle <= 180)
+          {
+              return  'right' ;
+          }
+          else if( angle > 180 && angle <= 270)
+          {
+              return 'bottom';
+          }
+          else{
+            return 'left';
+          }
+     }
 
 
 

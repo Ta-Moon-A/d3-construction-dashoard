@@ -155,10 +155,9 @@ function displayTooltip(
         }
     };
 
-    // if(y < 0)
-    // {
-        tooltipContentWrapper.attr("transform", `translate(${x +  tooltipTranslateConfig[direction].x},${y + tooltipTranslateConfig[direction].y})`);
-    // }
+    
+    tooltipContentWrapper.attr("transform", `translate(${x +  tooltipTranslateConfig[direction].x},${y + tooltipTranslateConfig[direction].y})`);
+    
 
 
     tooltipWrapper
