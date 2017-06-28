@@ -59,7 +59,7 @@ function drawPieChart(params) {
     //main chart object
     var main = function (selection) {
         selection.each(function () {
-             //calculated properties
+            //calculated properties
             var calc = {}
 
             calc.chartLeftMargin = attrs.marginLeft;
@@ -72,7 +72,7 @@ function drawPieChart(params) {
             calc.labelArcRadius = 2 * calc.radius / 3;
 
             var format = d3.format(".2s");
-            
+
 
 
             var svg = d3.select(this)
@@ -171,9 +171,6 @@ function drawPieChart(params) {
                 .outerRadius(calc.radius * 2);
 
 
-            function midAngle(d) {
-                return d.startAngle + (d.endAngle - d.startAngle) / 2;
-            }
 
 
 
@@ -232,7 +229,14 @@ function drawPieChart(params) {
                     .data(pie(shuffled), d => d.data.label);
 
 
-                path.exit().remove();
+                path.exit().transition().duration(2000).attr('r',5).attrTween("d", function (d) {
+                        this._current = this._current || d;
+                        var interpolate = d3.interpolate(this._current, {startAngle:2*Math.PI,endAngle:2*Math.PI});
+                        this._current = interpolate(0);
+                        return function (t) {
+                            return arc(interpolate(t));
+                        };
+                    }).remove();
 
                 path = path.enter()
                     .append('path')
@@ -245,6 +249,16 @@ function drawPieChart(params) {
                     //.attr('opacity', (d, i, arr) => (i + 1) / arr.length)
                     .attr('stroke', 'white')
                     .attr("class", "slicePath");
+
+                path.transition().duration(2000)
+                    .attrTween("d", function (d) {
+                        this._current = this._current || d;
+                        var interpolate = d3.interpolate(this._current, d);
+                        this._current = interpolate(0);
+                        return function (t) {
+                            return arc(interpolate(t));
+                        };
+                    })
 
                 // ----------------- end slices ---------------
 
@@ -359,6 +373,33 @@ function drawPieChart(params) {
                     .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
                     .style("font-size", "10px")
                     .attr('class', 'outerLabel');
+
+
+
+
+                // outerLabel
+                //     .transition().duration(2000)
+                //     .attrTween("transform", function (d) {
+                //         this._current = this._current || d;
+                //         var interpolate = d3.interpolate(this._current, d);
+                //         this._current = interpolate(0);
+                //         return function (t) {
+                //             var d2 = interpolate(t);
+                //             var pos = legendOuterArc.centroid(d2);
+                //             pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+                //             return "translate(" + pos + ")";
+                //         };
+                //     })
+                //     .styleTween("text-anchor", function (d) {
+                //         this._current = this._current || d;
+                //         var interpolate = d3.interpolate(this._current, d);
+                //         this._current = interpolate(0);
+                //         return function (t) {
+                //             var d2 = interpolate(t);
+                //             return midAngle(d2) < Math.PI ? "start" : "end";
+                //         };
+                //     });
+                   
                 // --------------- end  outer labels ---------------------
 
                 // ################################  Events  ################################################################################################  
@@ -381,8 +422,8 @@ function drawPieChart(params) {
 
                     outerLabel.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                     console.log(startLineGroup.data());
-                    startline.filter(v =>  v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
-                    endline.filter(v =>  v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                    startline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                    endline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                 });
 
 
@@ -393,6 +434,11 @@ function drawPieChart(params) {
                     startline.attr('opacity', 1);
                     endline.attr('opacity', 1);
                 });
+
+                
+            function midAngle(d) {
+                return d.startAngle + (d.endAngle - d.startAngle) / 2;
+            }
             }
         });
     };
