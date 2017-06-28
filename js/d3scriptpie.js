@@ -1,4 +1,23 @@
-function renderPieChart(params) {
+function GetTootipDirectionByAngle(angle) {
+    angle = angle * (180 / Math.PI);
+
+    if (angle > 0 && angle <= 90) {
+        return 'top';
+    }
+    else if (angle > 90 && angle <= 180) {
+        return 'right';
+    }
+    else if (angle > 180 && angle <= 270) {
+        return 'bottom';
+    }
+    else {
+        return 'left';
+    }
+}
+
+
+
+function drawPieChart(params) {
     // exposed variables
     var attrs = {
         svgWidth: 420,
@@ -40,8 +59,7 @@ function renderPieChart(params) {
     //main chart object
     var main = function (selection) {
         selection.each(function () {
-
-            //calculated properties
+             //calculated properties
             var calc = {}
 
             calc.chartLeftMargin = attrs.marginLeft;
@@ -51,14 +69,12 @@ function renderPieChart(params) {
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
             calc.radius = Math.min(calc.chartWidth, calc.chartHeight) / 3;
-            calc.labelArcRadius = calc.radius / 2;
-           
-           var format = d3.format(".2s");
-           attrs.data.data.forEach(function(d){
-              d.formatedValue = format(d.value);
-           });
+            calc.labelArcRadius = 2 * calc.radius / 3;
 
-            //drawing
+            var format = d3.format(".2s");
+            
+
+
             var svg = d3.select(this)
                 .append('svg')
                 .attr('width', attrs.svgWidth)
@@ -66,7 +82,6 @@ function renderPieChart(params) {
                 .style('overflow', 'visible');
             // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
             // .attr("preserveAspectRatio", "xMidYMid meet")
-
 
             //################################   FILTERS  &   SHADOWS  ##################################
 
@@ -77,46 +92,46 @@ function renderPieChart(params) {
             calc.filterUrl = `url(#id)`;
             //Drop shadow filter
             var dropShadowFilter = defs
-            .append("filter")
-            .attr("id",'id')
-            .attr("height", "130%");
+                .append("filter")
+                .attr("id", 'id')
+                .attr("height", "130%");
             dropShadowFilter
-            .append("feGaussianBlur")
-            .attr("in", "SourceAlpha")
-            .attr("stdDeviation", 5)
-            .attr("result", "blur");
+                .append("feGaussianBlur")
+                .attr("in", "SourceAlpha")
+                .attr("stdDeviation", 5)
+                .attr("result", "blur");
             dropShadowFilter
-            .append("feOffset")
-            .attr("in", "blur")
-            .attr("dx", 2)
-            .attr("dy", 4)
-            .attr("result", "offsetBlur");
+                .append("feOffset")
+                .attr("in", "blur")
+                .attr("dx", 2)
+                .attr("dy", 4)
+                .attr("result", "offsetBlur");
 
             dropShadowFilter
-            .append("feFlood")
-            .attr("flood-color", "black")
-            .attr("flood-opacity", "0.4")
-            .attr("result", "offsetColor");
+                .append("feFlood")
+                .attr("flood-color", "black")
+                .attr("flood-opacity", "0.4")
+                .attr("result", "offsetColor");
             dropShadowFilter
-            .append("feComposite")
-            .attr("in", "offsetColor")
-            .attr("in2", "offsetBlur")
-            .attr("operator", "in")
-            .attr("result", "offsetBlur");
+                .append("feComposite")
+                .attr("in", "offsetColor")
+                .attr("in2", "offsetBlur")
+                .attr("operator", "in")
+                .attr("result", "offsetBlur");
 
             var feMerge = dropShadowFilter.append("feMerge");
             feMerge.append("feMergeNode").attr("in", "offsetBlur");
             feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
-            // ------------------------------------------------------------------- filters end -----------------------------------------------------
+            // ################################ FILTERS  &   SHADOWS  END ##################################
 
             var chart = svg.append('g')
                 .attr('transform', 'translate(' + ((calc.chartWidth / 2) + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin) + ')');
 
 
             var chartTitle = svg.append('g')
-                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + 0+ ')');
-            
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + 0 + ')');
+
             // pie title 
             chartTitle.append("text")
                 .text(attrs.data.title)
@@ -161,169 +176,226 @@ function renderPieChart(params) {
             }
 
 
-            var shuffled = [];
-            
-            if (attrs.data.shuffleSlices)
-            {
-                 // shuffle array slices by angle size
-                var sorted = attrs.data.data.sort(function(a,b){  return d3.ascending(a.value, b.value); });
-                
-                for(var i = 0; i < sorted.length/2; i++)
-                {
-                    shuffled[2*i] = sorted[i];
-                    shuffled[2*i+1] = sorted[sorted.length -i-1];
-                }
-             }
-            else{
-                 shuffled = attrs.data.data.slice(0);
-            }
-            
-           
-
-            var slices = chart.append("g")
-                .attr("class", "slicesGroup")
-                .selectAll('g')
-                .data(pie(shuffled),d=>d.data.label)
-                .enter()
-                .append('g')
-                .attr("class", "sliceGroup");
-
-
-            var path = slices
-                .append('path')
-                .attr('d', arc)
-                .attr('fill', function (d, i, arr) {
-                    return color(d.data.label);
-                    // return attrs.color;
-                })
-                //.attr('opacity', (d, i, arr) => (i + 1) / arr.length)
-                .attr('stroke', 'white')
-                .attr("class", "slicePath");
 
 
 
-            //var innerLabels = chart.append("g").attr("class", "innerLables");
-            var innerLabel = slices
-                .append('text')
-                .text(function (d) { return d.data.label; })
-                .attr('x', function (d) { return labelArc.centroid(d)[0]; })
-                .attr('y', function (d) { return labelArc.centroid(d)[1]; })
-                .attr('fill', 'white')
-                .attr('text-anchor', 'middle')
-                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) < 30 ? 'none' : 'block'; })
-                .style('pointer-events', 'none')
-                .attr("class", "innerLabel");
 
 
+            renderPieChart(attrs, calc);
 
-            //   legend lines 
-            var lines = chart.append("g").attr("class", "lines");
-            var line = svg.select(".lines")
-                .selectAll("line")
-                .data(pie(shuffled), function (d) { return d.data.label });
-
-            pie(shuffled).forEach(function (d) {
-                d.data.lineStartX = legendInnerArc.centroid(d)[0];
-                d.data.lineStartY = legendInnerArc.centroid(d)[1];
-                d.data.lineMiddleX = legendMiddleArc.centroid(d)[0];
-                d.data.lineMiddleY = legendMiddleArc.centroid(d)[1];
-                d.data.lineEndX = legendMiddleArc.centroid(d)[0] > 0 ? (calc.radius + calc.radius / 3) : (-calc.radius - calc.radius / 3);
-                d.data.lineEndY = legendMiddleArc.centroid(d)[1];
-            });
-
-
-            line.enter().append("line").attr("class", "startLines")
-                .attr("x1", function (d) { return d.data.lineStartX })
-                .attr("y1", function (d) { return d.data.lineStartY })
-
-                .attr("x2", function (d) { return d.data.lineMiddleX })
-                .attr("y2", function (d) { return d.data.lineMiddleY })
-                .style("stroke", "grey")
-                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
-
-            line.enter().append("line").attr("class", "endLines")
-                .attr("x1", function (d) { return d.data.lineMiddleX })
-                .attr("y1", function (d) { return d.data.lineMiddleY })
-
-                .attr("x2", function (d) { return d.data.lineEndX; })
-                .attr("y2", function (d) { return d.data.lineEndY; })
-                .style("stroke", "grey")
-                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
-
-
-            var outerLabels = chart.append("g").attr("class", "outerLabels");
-            var outerLabel = outerLabels.selectAll('text')
-                .data(pie(shuffled),d=>d.data.label)
-                .enter()
-                .append('text')
-                .text(function (d) { return d.data.label; })
-                .attr('x', function (d) { return d.data.lineEndX })
-                .attr('y', function (d) { return d.data.lineEndY; })
-                .attr('fill', 'grey')
-                .attr('text-anchor',  function(d){ return d.endAngle * (180 / Math.PI) > 180 ? 'end' : 'start';})
-                .attr('alignment-baseline', 'middle')
-                .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
-                .style("font-size", "12px")
-                .attr('class', 'outerLabel');
-
-            // events 
-
-            slices.on('mouseenter', function (d) {
-                displayTooltip(
-                    true,
-                    chart,
-                    attrs.tooltipRows,
-                    GetTootipDirectionByAngle(d.endAngle),
-                    0,
-                    0,
-                    d.data,
-                    calc.dropShadowUrl
-                );
-
-
-                d3.select(this).attr('filter', calc.filterUrl);
-
-                slices.filter(v => v != d) .attr('opacity', attrs.slicesOpacity);
-
-            });
-
-
-            slices.on('mouseout', function (d) {
-                displayTooltip(false, chart);
-                slices.attr('opacity', 1).attr('filter','none');
-
-            });
-
-            // smoothly handle data updating
+            // ################################ Update Chart ##########################################################
             updateData = function () {
-               var newData = attrs.data.data;
-               var oldData = slices.data().map(function(d){
-                   return {
-                           value : d.data.value,
-                           label : d.data.label
-                        }
-               });
-
-              for(var i = 0; i < oldData.length; i++)
-               {
-                   var obj = newData.filter(function ( obj ) { return obj.label === oldData[i].label; })[0];
-                    if(obj == null)
-                    {
-                        oldData[i].value = 0;
-                        newData.push(oldData[i]);
-                    }
-               }
-             
-               slices = slices.data(pie(newData),d=>d.data.label); // compute the new angles
-               slices.select('path').attr("d", arc); // redraw the arcs
+                renderPieChart(attrs, calc);
             }
 
+            // ################################ Update Chart END ##########################################################
 
+
+            function renderPieChart(attrs, calc) {
+                // ------- process data --------------
+
+                attrs.data.data.forEach(function (d) {
+                    d.formatedValue = format(d.value);
+                });
+
+                var shuffled = [];
+
+                if (attrs.data.shuffleSlices) {
+                    // shuffle array slices by angle size
+                    var sorted = attrs.data.data.sort(function (a, b) { return d3.ascending(a.value, b.value); });
+                    for (var i = 0; i < sorted.length / 2; i++) {
+
+                        shuffled[2 * i] = sorted[i];
+                        if (i == Math.floor(sorted.length / 2) && sorted.length % 2 == 1) continue;
+                        shuffled[2 * i + 1] = sorted[sorted.length - i - 1];
+                    }
+                }
+                else {
+                    shuffled = attrs.data.data.slice(0);
+                }
+                // ------- end process data --------------
+
+                // ----------------- slices ---------------
+                var sliceGroup = chart.selectAll('.slicesGroup').data([1]);
+
+                sliceGroup.exit().remove();
+
+                sliceGroup = sliceGroup.enter()
+                    .append("g")
+                    .merge(sliceGroup)
+                    .attr("class", "slicesGroup")
+
+
+
+                var path = sliceGroup
+                    .selectAll('path')
+                    .data(pie(shuffled), d => d.data.label);
+
+
+                path.exit().remove();
+
+                path = path.enter()
+                    .append('path')
+                    .merge(path)
+                    .attr('d', arc)
+                    .attr('fill', function (d, i, arr) {
+                        return color(d.data.label);
+                        // return attrs.color;
+                    })
+                    //.attr('opacity', (d, i, arr) => (i + 1) / arr.length)
+                    .attr('stroke', 'white')
+                    .attr("class", "slicePath");
+
+                // ----------------- end slices ---------------
+
+                // -----------------inner labels --------------
+                var innerLabelGroup = chart.selectAll('.innerLabels').data([1]);
+                innerLabelGroup.exit().remove();
+                innerLabelGroup = innerLabelGroup.enter().append('g')
+                    .merge(innerLabelGroup)
+                    .attr('class', 'innerLabels');
+
+                var innerLabel = innerLabelGroup.selectAll('text')
+                    .data(pie(shuffled), d => d.data.label);
+
+                innerLabel.exit().remove();
+
+                innerLabel = innerLabel.enter()
+                    .append('text')
+                    .merge(innerLabel)
+                    .text(function (d) { return d.data.label; })
+                    .attr('x', function (d) { return labelArc.centroid(d)[0]; })
+                    .attr('y', function (d) { return labelArc.centroid(d)[1]; })
+                    .attr('fill', 'white')
+                    .attr('text-anchor', 'middle')
+                    .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) < 30 ? 'none' : 'block'; })
+                    .style('pointer-events', 'none')
+                    .style("font-size", "13px")
+                    .attr("class", "innerLabel");
+                // ----------------- end inner labels --------------
+
+
+                // ----------------- legend lines  --------------
+                pie(shuffled).forEach(function (d) {
+                    d.data.lineStartX = legendInnerArc.centroid(d)[0];
+                    d.data.lineStartY = legendInnerArc.centroid(d)[1];
+                    d.data.lineMiddleX = legendMiddleArc.centroid(d)[0];
+                    d.data.lineMiddleY = legendMiddleArc.centroid(d)[1];
+                    d.data.lineEndX = legendMiddleArc.centroid(d)[0] > 0 ? (calc.radius + calc.radius / 3) : (-calc.radius - calc.radius / 3);
+                    d.data.lineEndY = legendMiddleArc.centroid(d)[1];
+                });
+
+
+                var startLineGroup = chart.selectAll('.startlines').data([1]);
+                startLineGroup.exit().remove();
+                startLineGroup = startLineGroup.enter().append('g')
+                    .merge(startLineGroup)
+                    .attr('class', 'startlines');
+
+
+                var startline = startLineGroup.selectAll("line")
+                    .data(pie(shuffled), function (d) { return d.data.label });
+
+                startline.exit().remove();
+
+                startline = startline.enter().append("line").merge(startline)
+                    .attr("class", "startLine")
+                    .attr("x1", function (d) { return d.data.lineStartX })
+                    .attr("y1", function (d) { return d.data.lineStartY })
+
+                    .attr("x2", function (d) { return d.data.lineMiddleX })
+                    .attr("y2", function (d) { return d.data.lineMiddleY })
+                    .style("stroke", "grey")
+                    .style('pointer-events', 'none')
+                    .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
+
+                //------------------------------------------------------------------------
+
+                var endLineGroup = chart.selectAll('.endlines').data([1]);
+                endLineGroup.exit().remove();
+                endLineGroup = endLineGroup.enter().append('g')
+                    .merge(endLineGroup)
+                    .attr('class', 'endlines');
+
+                var endline = endLineGroup.selectAll("line")
+                    .data(pie(shuffled), function (d) { return d.data.label });
+
+                endline.exit().remove();
+
+                endline = endline.enter().append("line").merge(endline)
+                    .attr("class", "endLine")
+                    .attr("x1", function (d) { return d.data.lineMiddleX })
+                    .attr("y1", function (d) { return d.data.lineMiddleY })
+
+                    .attr("x2", function (d) { return d.data.lineEndX; })
+                    .attr("y2", function (d) { return d.data.lineEndY; })
+                    .style("stroke", "grey")
+                    .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; });
+
+                // -----------------end legend lines  --------------
+
+                // ---------------  outer labels -------------------
+                var outerLabelGroup = chart.selectAll('.outerLabels').data([1]);
+                outerLabelGroup.exit().remove();
+                outerLabelGroup = outerLabelGroup.enter().append('g')
+                    .merge(outerLabelGroup)
+                    .attr('class', 'outerLabels');
+
+
+
+                var outerLabel = outerLabelGroup.selectAll('text')
+                    .data(pie(shuffled), d => d.data.label);
+                outerLabel.exit().remove();
+
+                outerLabel = outerLabel.enter()
+                    .append('text')
+                    .merge(outerLabel)
+                    .text(function (d) { return d.data.label; })
+                    .attr('x', function (d) { return d.data.lineEndX })
+                    .attr('y', function (d) { return d.data.lineEndY; })
+                    .attr('fill', 'grey')
+                    .attr('text-anchor', function (d) { return d.endAngle * (180 / Math.PI) > 180 ? 'end' : 'start'; })
+                    .attr('alignment-baseline', 'middle')
+                    .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
+                    .style("font-size", "10px")
+                    .attr('class', 'outerLabel');
+                // --------------- end  outer labels ---------------------
+
+                // ################################  Events  ################################################################################################  
+
+                path.on('mouseenter', function (d) {
+                    displayTooltip(
+                        true,
+                        chart,
+                        attrs.tooltipRows,
+                        GetTootipDirectionByAngle(d.endAngle),
+                        0,
+                        0,
+                        d.data,
+                        calc.dropShadowUrl
+                    );
+
+
+                    d3.select(this).attr('filter', calc.filterUrl);
+                    path.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
+
+                    outerLabel.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                    console.log(startLineGroup.data());
+                    startline.filter(v =>  v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                    endline.filter(v =>  v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                });
+
+
+                path.on('mouseout', function (d) {
+                    displayTooltip(false, chart);
+                    path.attr('opacity', 1).attr('filter', 'none');
+                    outerLabel.attr('opacity', 1);
+                    startline.attr('opacity', 1);
+                    endline.attr('opacity', 1);
+                });
+            }
         });
     };
-
-
-
 
 
     ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows'].forEach(key => {
@@ -336,9 +408,6 @@ function renderPieChart(params) {
         };
     });
 
-
-
-
     //exposed update functions
     main.data = function (value) {
         if (!arguments.length) return attrs.data;
@@ -348,31 +417,6 @@ function renderPieChart(params) {
         }
         return main;
     }
-
-
-   function GetTootipDirectionByAngle(angle)
-     {
-         angle = angle * (180 / Math.PI);
-        
-          if(angle > 0 && angle <= 90)
-          {
-              return 'top';
-          }
-          else if(angle > 90 && angle <= 180)
-          {
-              return  'right' ;
-          }
-          else if( angle > 180 && angle <= 270)
-          {
-              return 'bottom';
-          }
-          else{
-            return 'left';
-          }
-     }
-
-
-
 
     return main;
 }

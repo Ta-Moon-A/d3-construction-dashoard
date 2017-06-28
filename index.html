@@ -61,6 +61,7 @@
 <script>
 
    var pie2Chart;
+   var pie1Chart;
 
     d3.csv("data/Constructions.csv", function(data) {
         var result = [];
@@ -89,23 +90,23 @@
           var lineChart = renderLineChart()
                          .data('Pass Something Here and use it as attrs.data')
          
-          var pie1Chart = renderPieChart()
+           pie1Chart = drawPieChart()
                          .data({title : "Sum Of Constructions By Region", 
                                 data : dataGroupedByRegion,
                                 tooltip : true,
                                 outerLabel : true,
                                 shuffleSlices : true})
                          .color('#796799')
-                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{value}"}])
+                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{formatedValue}"}])
 
-           pie2Chart = renderPieChart()
+           pie2Chart = drawPieChart()
                          .data({title : "Average Construnctions Number By Years", 
                                 data : dataGroupedByYear, 
                                 tooltip : true,
                                 outerLabel : true,
                                 shuffleSlices : false})
                          .color('#EF4836')
-                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{value}"}])
+                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{formatedValue}"}])
 
           var filterChart = renderCrossFilter()
                          .data('Pass Something Here and use it as attrs.data')
@@ -151,6 +152,12 @@
                         tooltip : true,
                         outerLabel : true,
                         shuffleSlices : false});
+
+        pie1Chart.data({title : "Sum Of Constructions By Region", 
+                                data : dataGroupedByRegion,
+                                tooltip : true,
+                                outerLabel : true,
+                                shuffleSlices : true});
     };
 </script>
 
