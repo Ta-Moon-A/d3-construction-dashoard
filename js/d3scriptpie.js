@@ -15,7 +15,9 @@ function GetTootipDirectionByAngle(angle) {
     }
 }
 
-
+ function midAngle(d) {
+       return d.startAngle + (d.endAngle - d.startAngle) / 2;
+}
 
 function drawPieChart(params) {
     // exposed variables
@@ -29,7 +31,8 @@ function drawPieChart(params) {
         showCenterText: false,
         data: null,
         radius: 150,
-        slicesOpacity: 0.3
+        slicesOpacity: 0.3,
+        transTimeOut: 1000
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -229,14 +232,16 @@ function drawPieChart(params) {
                     .data(pie(shuffled), d => d.data.label);
 
 
-                path.exit().transition().duration(2000).attr('r',5).attrTween("d", function (d) {
-                        this._current = this._current || d;
-                        var interpolate = d3.interpolate(this._current, {startAngle:2*Math.PI,endAngle:2*Math.PI});
-                        this._current = interpolate(0);
-                        return function (t) {
-                            return arc(interpolate(t));
-                        };
-                    }).remove();
+                var pathExit = path.exit()
+
+                pathExit.transition().duration(attrs.transTimeOut).attrTween("d", function (d) {
+                    this._current = this._current || d;
+                    var interpolate = d3.interpolate(this._current, { startAngle: 2 * Math.PI, endAngle: 2 * Math.PI });
+                    this._current = interpolate(0);
+                    return function (t) {
+                        return arc(interpolate(t));
+                    };
+                }).remove();
 
                 path = path.enter()
                     .append('path')
@@ -250,7 +255,7 @@ function drawPieChart(params) {
                     .attr('stroke', 'white')
                     .attr("class", "slicePath");
 
-                path.transition().duration(2000)
+                path.transition().duration(attrs.transTimeOut)
                     .attrTween("d", function (d) {
                         this._current = this._current || d;
                         var interpolate = d3.interpolate(this._current, d);
@@ -272,12 +277,18 @@ function drawPieChart(params) {
                 var innerLabel = innerLabelGroup.selectAll('text')
                     .data(pie(shuffled), d => d.data.label);
 
-                innerLabel.exit().remove();
+                innerLabel.exit().attr('opacity', 1).transition().duration(attrs.transTimeOut).attr('opacity', 0).on('end', function () {
+                    d3.select(this).remove();
+                });
 
                 innerLabel = innerLabel.enter()
                     .append('text')
+                    .attr('x', function (d) { return labelArc.centroid(d)[0]; })
+                    .attr('y', function (d) { return labelArc.centroid(d)[1]; })
+                    .style("font-size", "13px")
                     .merge(innerLabel)
                     .text(function (d) { return d.data.label; })
+                    .transition().duration(attrs.transTimeOut)
                     .attr('x', function (d) { return labelArc.centroid(d)[0]; })
                     .attr('y', function (d) { return labelArc.centroid(d)[1]; })
                     .attr('fill', 'white')
@@ -285,7 +296,13 @@ function drawPieChart(params) {
                     .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) < 30 ? 'none' : 'block'; })
                     .style('pointer-events', 'none')
                     .style("font-size", "13px")
-                    .attr("class", "innerLabel");
+                    .attr("class", "innerLabel")
+                    // .attr("transform", function(d){
+                    //     debugger; d;
+                    //     console.log(d.data.label +"  -  "+ midAngle(d) * (180 / Math.PI));
+                    //     return  "rotate("+midAngle(d) * (180 / Math.PI) +")"; 
+                    // });
+                    
                 // ----------------- end inner labels --------------
 
 
@@ -312,8 +329,17 @@ function drawPieChart(params) {
 
                 startline.exit().remove();
 
-                startline = startline.enter().append("line").merge(startline)
-                    .attr("class", "startLine")
+                startline = startline.enter().append("line")
+                    .attr("x1", function (d) { return d.data.lineStartX })
+                    .attr("y1", function (d) { return d.data.lineStartY })
+
+                    .attr("x2", function (d) { return d.data.lineMiddleX })
+                    .attr("y2", function (d) { return d.data.lineMiddleY })
+
+                    .merge(startline);
+
+                startline.attr("class", "startLine")
+                    .transition().duration(attrs.transTimeOut)
                     .attr("x1", function (d) { return d.data.lineStartX })
                     .attr("y1", function (d) { return d.data.lineStartY })
 
@@ -336,8 +362,16 @@ function drawPieChart(params) {
 
                 endline.exit().remove();
 
-                endline = endline.enter().append("line").merge(endline)
+                endline = endline.enter().append("line")
+                    .attr("x1", function (d) { return d.data.lineMiddleX })
+                    .attr("y1", function (d) { return d.data.lineMiddleY })
+
+                    .attr("x2", function (d) { return d.data.lineEndX; })
+                    .attr("y2", function (d) { return d.data.lineEndY; })
+                    .merge(endline)
                     .attr("class", "endLine")
+
+                endline.transition().duration(attrs.transTimeOut)
                     .attr("x1", function (d) { return d.data.lineMiddleX })
                     .attr("y1", function (d) { return d.data.lineMiddleY })
 
@@ -363,43 +397,29 @@ function drawPieChart(params) {
 
                 outerLabel = outerLabel.enter()
                     .append('text')
+                    .style("font-size", "10px")
+                    .attr('x', function (d) { return d.data.lineEndX })
+                    .attr('y', function (d) { return d.data.lineEndY; })
                     .merge(outerLabel)
-                    .text(function (d) { return d.data.label; })
+
+
+
+                outerLabel.text(function (d) { return d.data.label; })
+                    .transition().duration(attrs.transTimeOut)
                     .attr('x', function (d) { return d.data.lineEndX })
                     .attr('y', function (d) { return d.data.lineEndY; })
                     .attr('fill', 'grey')
                     .attr('text-anchor', function (d) { return d.endAngle * (180 / Math.PI) > 180 ? 'end' : 'start'; })
                     .attr('alignment-baseline', 'middle')
                     .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
-                    .style("font-size", "10px")
+                    //.style("font-size", "10px")
                     .attr('class', 'outerLabel');
 
 
 
 
-                // outerLabel
-                //     .transition().duration(2000)
-                //     .attrTween("transform", function (d) {
-                //         this._current = this._current || d;
-                //         var interpolate = d3.interpolate(this._current, d);
-                //         this._current = interpolate(0);
-                //         return function (t) {
-                //             var d2 = interpolate(t);
-                //             var pos = legendOuterArc.centroid(d2);
-                //             pos[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
-                //             return "translate(" + pos + ")";
-                //         };
-                //     })
-                //     .styleTween("text-anchor", function (d) {
-                //         this._current = this._current || d;
-                //         var interpolate = d3.interpolate(this._current, d);
-                //         this._current = interpolate(0);
-                //         return function (t) {
-                //             var d2 = interpolate(t);
-                //             return midAngle(d2) < Math.PI ? "start" : "end";
-                //         };
-                //     });
-                   
+
+
                 // --------------- end  outer labels ---------------------
 
                 // ################################  Events  ################################################################################################  
@@ -421,7 +441,6 @@ function drawPieChart(params) {
                     path.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
 
                     outerLabel.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
-                    console.log(startLineGroup.data());
                     startline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                     endline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                 });
@@ -435,10 +454,8 @@ function drawPieChart(params) {
                     endline.attr('opacity', 1);
                 });
 
-                
-            function midAngle(d) {
-                return d.startAngle + (d.endAngle - d.startAngle) / 2;
-            }
+
+               
             }
         });
     };

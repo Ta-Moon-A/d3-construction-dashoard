@@ -142,6 +142,8 @@
                       {"region":"Racha","year":"2012","value":"810"},
                      {"region":"Kvemo Kartli","year":"2011","value":"48040"}];
 
+                     result.forEach(d=>d.value=Math.floor(Math.random()*500000));
+
         var dataGroupedByRegion = GetRegionData(result);
         var dataGroupedByYear = GetYearlyData(result);
         
