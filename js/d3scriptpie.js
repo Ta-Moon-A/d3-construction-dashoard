@@ -15,8 +15,8 @@ function GetTootipDirectionByAngle(angle) {
     }
 }
 
- function midAngle(d) {
-       return d.startAngle + (d.endAngle - d.startAngle) / 2;
+function midAngle(d) {
+    return d.startAngle + (d.endAngle - d.startAngle) / 2;
 }
 
 function drawPieChart(params) {
@@ -32,7 +32,8 @@ function drawPieChart(params) {
         data: null,
         radius: 150,
         slicesOpacity: 0.3,
-        transTimeOut: 1000
+        transTimeOut: 1000,
+        shuffleSlices : true
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -72,7 +73,7 @@ function drawPieChart(params) {
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
             calc.radius = Math.min(calc.chartWidth, calc.chartHeight) / 3;
-            calc.labelArcRadius = 2 * calc.radius / 3;
+            calc.labelArcRadius =  calc.radius * 0.6;
 
             var format = d3.format(".2s");
 
@@ -283,26 +284,31 @@ function drawPieChart(params) {
 
                 innerLabel = innerLabel.enter()
                     .append('text')
-                    .attr('x', function (d) { return labelArc.centroid(d)[0]; })
-                    .attr('y', function (d) { return labelArc.centroid(d)[1]; })
                     .style("font-size", "13px")
+                    .attr("transform", function (d) {
+                        debugger;
+                        var rotationAngle = midAngle(d) * (180 / Math.PI);
+                         if(rotationAngle>180)rotationAngle-=180;
+                        console.log(d.data.label + "  -  " + rotationAngle);
+                        return `translate(${labelArc.centroid(d)[0]},${labelArc.centroid(d)[1]}) rotate("${rotationAngle})`;
+                    })
                     .merge(innerLabel)
                     .text(function (d) { return d.data.label; })
                     .transition().duration(attrs.transTimeOut)
-                    .attr('x', function (d) { return labelArc.centroid(d)[0]; })
-                    .attr('y', function (d) { return labelArc.centroid(d)[1]; })
                     .attr('fill', 'white')
                     .attr('text-anchor', 'middle')
+                    .attr('alignment-baseline', 'middle')
                     .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) < 30 ? 'none' : 'block'; })
                     .style('pointer-events', 'none')
                     .style("font-size", "13px")
                     .attr("class", "innerLabel")
-                    // .attr("transform", function(d){
-                    //     debugger; d;
-                    //     console.log(d.data.label +"  -  "+ midAngle(d) * (180 / Math.PI));
-                    //     return  "rotate("+midAngle(d) * (180 / Math.PI) +")"; 
-                    // });
-                    
+                    .attr("transform", function (d) {
+                        debugger;
+                        var rotationAngle = midAngle(d) * (180 / Math.PI)-90;
+                        if(rotationAngle>90)rotationAngle-=180;
+                        return `translate(${labelArc.centroid(d)[0]},${labelArc.centroid(d)[1]}) rotate(${rotationAngle})`;
+                    });
+
                 // ----------------- end inner labels --------------
 
 
@@ -409,7 +415,7 @@ function drawPieChart(params) {
                     .attr('x', function (d) { return d.data.lineEndX })
                     .attr('y', function (d) { return d.data.lineEndY; })
                     .attr('fill', 'grey')
-                    .attr('text-anchor', function (d) { return d.endAngle * (180 / Math.PI) > 180 ? 'end' : 'start'; })
+                    .attr('text-anchor', function (d) { return midAngle(d) * (180 / Math.PI) > 180 ? 'end' : 'start'; })
                     .attr('alignment-baseline', 'middle')
                     .attr('display', function (d) { return Math.abs((d.startAngle - d.endAngle) * (180 / Math.PI)) > 30 ? 'none' : 'block'; })
                     //.style("font-size", "10px")
@@ -455,13 +461,13 @@ function drawPieChart(params) {
                 });
 
 
-               
+
             }
         });
     };
 
 
-    ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows'].forEach(key => {
+    ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows','shuffleSlices'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;

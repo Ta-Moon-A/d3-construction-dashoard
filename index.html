@@ -149,17 +149,12 @@
         
         
 
-        pie2Chart.data({title : "Average Construnctions Number By Years", 
-                        data : dataGroupedByYear, 
-                        tooltip : true,
-                        outerLabel : true,
-                        shuffleSlices : false});
+        pie2Chart.shuffleSlices(false)
+                        .data({title : "Average Construnctions Number By Years", 
+                        data : dataGroupedByYear});
 
-        pie1Chart.data({title : "Sum Of Constructions By Region", 
-                                data : dataGroupedByRegion,
-                                tooltip : true,
-                                outerLabel : true,
-                                shuffleSlices : true});
+        pie1Chart.shuffleSlices(false)
+                    .data({data : dataGroupedByRegion });
     };
 </script>
 
