@@ -134,7 +134,7 @@ function drawPieChart(params) {
 
 
             var chartTitle = svg.append('g')
-                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + 0 + ')');
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
 
             // pie title 
             chartTitle.append("text")
@@ -286,11 +286,10 @@ function drawPieChart(params) {
                     .append('text')
                     .style("font-size", "13px")
                     .attr("transform", function (d) {
-                        debugger;
                         var rotationAngle = midAngle(d) * (180 / Math.PI);
                          if(rotationAngle>180)rotationAngle-=180;
-                        console.log(d.data.label + "  -  " + rotationAngle);
-                        return `translate(${labelArc.centroid(d)[0]},${labelArc.centroid(d)[1]}) rotate("${rotationAngle})`;
+                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2) }) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
+                        
                     })
                     .merge(innerLabel)
                     .text(function (d) { return d.data.label; })
@@ -303,10 +302,10 @@ function drawPieChart(params) {
                     .style("font-size", "13px")
                     .attr("class", "innerLabel")
                     .attr("transform", function (d) {
-                        debugger;
-                        var rotationAngle = midAngle(d) * (180 / Math.PI)-90;
+                       var rotationAngle = midAngle(d) * (180 / Math.PI)-90;
                         if(rotationAngle>90)rotationAngle-=180;
-                        return `translate(${labelArc.centroid(d)[0]},${labelArc.centroid(d)[1]}) rotate(${rotationAngle})`;
+
+                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2) }) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
                     });
 
                 // ----------------- end inner labels --------------

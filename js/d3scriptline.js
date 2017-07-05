@@ -1,15 +1,13 @@
 
-
-
-function renderLineChart(params) {
+function drawLineChart(params) {
     // exposed variables
     var attrs = {
         svgWidth: 700,
         svgHeight: 400,
-        marginTop: 5,
+        marginTop: 20,
         marginBottom: 5,
         marginRight: 5,
-        marginLeft: 5,
+        marginLeft: 20,
         data: null
     };
 
@@ -56,15 +54,81 @@ function renderLineChart(params) {
                 .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + calc.chartTopMargin + ')')
 
 
+            var chartTitle = svg.append('g')
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
+
+            // pie title 
+            chartTitle.append("text")
+                .text(attrs.data.title)
+                .attr('fill', 'black')
+                .style('font-weight', 'bold');
+
+
+            var xScale = d3.scaleLinear() 
+               .domain(d3.extent(attrs.data.data, function(d) { return d.year; }))
+               .range([0,calc.chartWidth]);
+
+            var yScale = d3.scaleLinear()
+                .domain(d3.extent(attrs.data.data, function (d) { return d.value; }))
+               .range([calc.chartHeight,0]);
+
+            var line  = d3.line().x(function(d) { return xScale(d.year); })
+                                 .y(function(d) { return yScale(d.value); });
+
+            var lines  = chart.selectAll("path")
+                   .data(attrs.data.data)
+                   .enter()
+                   .append("path")
+                   .attr("stroke", function(d,i) { return 'red'; })
+                   .attr("d", function(d){ return line(d) });
 
 
 
-            // smoothly handle data updating
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            // ################################ Update Chart ##########################################################
             updateData = function () {
-
-
+                renderPieChart(attrs, calc);
             }
 
+            // ################################ Render Chart ##########################################################
+            function renderPieChart(attrs, calc) {
+                // -----------------------------------  Process Data -----------------------------------
+
+
+
+                // -----------------------------------  Events  -----------------------------------
+                // path.on('mouseenter', function (d) {
+
+                // });
+
+
+                // path.on('mouseout', function (d) {
+
+                // });
+            }
 
         });
     };

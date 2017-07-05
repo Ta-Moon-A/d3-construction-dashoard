@@ -30,12 +30,12 @@
 <body translate="no">
 
   <div  style="position: relative;">
-      <div>
+      <!--<div>
            <button onclick="TestPies()">Test Pies</button>
            <button onclick="testLine()">Test Line</button>
-      </div>
+      </div>-->
       <div id ="myLine"  style="float: left;">
-          <p>Line Chart</p>
+          <p></p>
       </div>
 
       <div id ="myPie1" style="float: left;">
@@ -46,11 +46,14 @@
           <p></p>
       </div>
   </div>
-  <!--<div>
-      <div id ="myCrossFilter" style="float: left;">
+  <div>
+       <button onclick="TestPies()">Test Pies</button>
+       <button onclick="testLine()">Test Line</button>
+
+      <!--<div id ="myCrossFilter" style="float: left;">
           <p>Cross Filter</p>
-      </div>
-  </div>-->
+      </div>-->
+  </div>
     <script src="js/d3.v4.min.js"></script>
     <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
@@ -87,8 +90,9 @@
       
 
 
-          var lineChart = renderLineChart()
-                         .data('Pass Something Here and use it as attrs.data')
+          var lineChart = drawLineChart()
+                         .data({title : "Construction Number By Region and Year", 
+                                data : result});
          
            pie1Chart = drawPieChart()
                          .data({title : "Sum Of Constructions By Region", 
