@@ -27,3 +27,28 @@ function GetYearlyData(initialData)
                          }).entries(initialData);
    return nestedData.map(function(d){return d.value;});
 }
+
+
+
+function GetGroupedDataForLineChart(initialData)
+{
+     var nestedData = d3.nest().key(function(d){ return d.region; })
+                               .rollup(function(leaves){ 
+                                          return { 
+                                                   "region": leaves[0].region, 
+                                                   "value": leaves
+                                                 } 
+                         }).entries(initialData);
+
+   var groupedData =  nestedData.map(function(d){
+                             return {
+                                   region : d.key,
+                                   data : d.value.value
+                             };
+                          });
+   
+    return groupedData;
+}
+
+
+

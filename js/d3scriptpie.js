@@ -130,7 +130,7 @@ function drawPieChart(params) {
             // ################################ FILTERS  &   SHADOWS  END ##################################
 
             var chart = svg.append('g')
-                .attr('transform', 'translate(' + ((calc.chartWidth / 2) + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin) + ')');
+                .attr('transform', 'translate(' + ((calc.chartWidth / 2)  + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin + 20) + ')');
 
 
             var chartTitle = svg.append('g')
