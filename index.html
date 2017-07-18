@@ -30,10 +30,6 @@
 <body translate="no">
 
   <div  style="position: relative;">
-      <!--<div>
-           <button onclick="TestPies()">Test Pies</button>
-           <button onclick="testLine()">Test Line</button>
-      </div>-->
       <div id ="myLine"  style="float: left;">
           <p></p>
       </div>
@@ -46,14 +42,13 @@
           <p></p>
       </div>
   </div>
-  <div>
-       <button onclick="TestCharts()">Test Charts</button>
-    
-
-      <!--<div id ="myCrossFilter" style="float: left;">
-          <p>Cross Filter</p>
-      </div>-->
-  </div>
+  <div style="position: relative;">
+     <div id ="myFilter" style="float: left; ">
+     </div>
+     <div style="float: right; margin-top : 50; margin-right : 200">
+         <button onclick="TestCharts()">Test Charts</button>
+     </div>
+ </div>
     <script src="js/d3.v4.min.js"></script>
     <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
@@ -88,7 +83,7 @@
 
         var dataGroupedByRegion = GetRegionData(result);
         var dataGroupedByYear = GetYearlyData(result);
-       
+        var dataForFilter = GetYearsForFilter(result);
 
 
            lineChart = drawLineChart()
@@ -113,18 +108,21 @@
                          .color('#EF4836')
                          .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{formatedValue}"}])
 
-          var filterChart = renderCrossFilter()
-                         .data('Pass Something Here and use it as attrs.data')
-                         .onFilterChange(d=>{
-                             pie2Chart.data(d);
-                             pie1Chart.data(d);
-                             lineChart.data(d);
-                         })
+          var filterChart = renderFilter()
+                            .data({
+                                title : "Filter By Year", 
+                                data : dataForFilter
+                            })
+                            .onFilterChange(d=>{
+                                pie2Chart.data(d);
+                                pie1Chart.data(d);
+                                lineChart.data(d);
+                            });
            
           d3.select("#myLine").call(lineChart);
           d3.select("#myPie1").call(pie1Chart);
           d3.select("#myPie2").call(pie2Chart);
-          d3.select("#myCrossFilter").call(filterChart);
+          d3.select("#myFilter").call(filterChart);
 
     });
 

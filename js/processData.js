@@ -51,4 +51,20 @@ function GetGroupedDataForLineChart(initialData)
 }
 
 
+function GetYearsForFilter(initialData)
+{
+    debugger;
+    var groupedData =  initialData.map(function(d){
+                             return Number(d.year);
+                          });
+
+    var uniqueYears = groupedData.filter(onlyUnique);
+    return uniqueYears;
+}
+
+
+function onlyUnique(value, index, self) { 
+    return self.indexOf(value) === index;
+}
+
 

@@ -1,16 +1,14 @@
-
-
-
-function renderCrossFilter(params) {
+function renderFilter(params) {
     // exposed variables
     var attrs = {
-        svgWidth: 400,
-        svgHeight: 400,
-        marginTop: 5,
+        svgWidth: 630,
+        svgHeight: 100,
+        marginTop: 50,
         marginBottom: 5,
-        marginRight: 5,
-        marginLeft: 5,
-        data: null
+        marginRight: 10,
+        marginLeft: 50,
+        data: null,
+        filterHeight: 40
     };
 
 
@@ -37,26 +35,82 @@ function renderCrossFilter(params) {
 
             calc.chartLeftMargin = attrs.marginLeft;
             calc.chartTopMargin = attrs.marginTop;
+            calc.marginRight = attrs.marginRight;
 
             calc.chartWidth = attrs.svgWidth - attrs.marginRight - calc.chartLeftMargin;
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
-
+            calc.filterHeight = attrs.filterHeight;
+            debugger;
             //drawing
             var svg = d3.select(this)
                 .append('svg')
                 .attr('width', attrs.svgWidth)
                 .attr('height', attrs.svgHeight)
-            // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
-            // .attr("preserveAspectRatio", "xMidYMid meet")
+                .style('overflow', 'visible');
 
 
             var chart = svg.append('g')
-                .attr('width', calc.chartWidth)
-                .attr('height', calc.chartHeight)
-                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + calc.chartTopMargin + ')')
+                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 10) + ')')
+
+
+            var chartTitle = svg.append('g')
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
+
+            // pie title 
+            chartTitle.append("text")
+                .text(attrs.data.title)
+                .attr('fill', 'black')
+                .style('font-weight', 'bold');
 
 
 
+            // Scale
+            var xScale = d3.scalePoint()
+                .domain(attrs.data.data)
+                .range([0, attrs.svgWidth]);
+
+            var brushContainer = chart.append("g")
+                .attr("class", "brush")
+                .attr("fill", "#b1d39c")
+                .attr("fill-opacity", "0.3")
+                .attr("stroke", "black")
+                .attr("stroke-width", "1px")
+                .attr("stroke-opacity", "0.3");
+
+            var brush = d3.brushX()
+                .extent([[0, 0], [attrs.svgWidth, calc.filterHeight]])
+                .on("brush end", brushed);
+
+
+            // Text
+            brushContainer.append("text")
+                .attr("transform", "translate(" + calc.chartLeftMargin + "," + (calc.filterHeight - 10) + ")")
+                .text("Click and drag here");
+
+            // Axes
+            var xAxis = d3.axisBottom().scale(xScale).tickSize(5);
+
+            brushContainer.call(xAxis);
+            brushContainer.call(brush)
+                .call(brush.move, xScale.range());
+
+            brushContainer.selectAll("rect")
+                .attr("y", 0)
+                .attr("height", calc.filterHeight);
+
+
+            function brushed() {
+               
+                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+                // alert('dfgdfgfdg');
+                // var s = d3.event.selection || x2.range();
+                // x.domain(s.map(x2.invert, x2));
+                // focus.select(".area").attr("d", area);
+                // focus.select(".axis--x").call(xAxis);
+                // svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
+                //     .scale(width / (s[1] - s[0]))
+                //     .translate(-s[0], 0));
+            }
 
 
             // smoothly handle data updating
@@ -97,8 +151,8 @@ function renderCrossFilter(params) {
     }
 
 
-     main.onFilterChange = function(chartUpdateFunc){
-         attrs.chartUpdateFunc = chartUpdateFunc;
+    main.onFilterChange = function (chartUpdateFunc) {
+        //  attrs.chartUpdateFunc = chartUpdateFunc;
         return main;
     }
 
