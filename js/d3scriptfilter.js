@@ -69,6 +69,10 @@ function renderFilter(params) {
                 .domain(attrs.data.data)
                 .range([0, attrs.svgWidth]);
 
+            var x2Scale = d3.scalePoint()
+                .domain(attrs.data.data)
+                .range([0, attrs.svgWidth]);
+
             var brushContainer = chart.append("g")
                 .attr("class", "brush")
                 .attr("fill", "#b1d39c")
@@ -79,7 +83,7 @@ function renderFilter(params) {
 
             var brush = d3.brushX()
                 .extent([[0, 0], [attrs.svgWidth, calc.filterHeight]])
-                .on("brush end", brushed);
+                .on("end", brushed);
 
 
             // Text
@@ -91,8 +95,7 @@ function renderFilter(params) {
             var xAxis = d3.axisBottom().scale(xScale).tickSize(5);
 
             brushContainer.call(xAxis);
-            brushContainer.call(brush)
-                .call(brush.move, xScale.range());
+            brushContainer.call(brush).call(brush.event); //.call(brush).call(brush.move, xScale.range());
 
             brushContainer.selectAll("rect")
                 .attr("y", 0)
@@ -100,18 +103,63 @@ function renderFilter(params) {
 
 
             function brushed() {
-               
-                if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-                // alert('dfgdfgfdg');
-                // var s = d3.event.selection || x2.range();
-                // x.domain(s.map(x2.invert, x2));
-                // focus.select(".area").attr("d", area);
-                // focus.select(".axis--x").call(xAxis);
-                // svg.select(".zoom").call(zoom.transform, d3.zoomIdentity
-                //     .scale(width / (s[1] - s[0]))
-                //     .translate(-s[0], 0));
+                debugger;
+
+                var range = xScale.range();
+                var s = d3.event.selection || range;
+
+                var rangePoints = d3.range(range[0], range[1] + 1, xScale.step())
+
+                var rangeStart = closest(rangePoints, s[0]);
+                var rangeEnd = closest(rangePoints, s[1]);
+
+
+
+
+                var startYear = Number(scalePointPosition(rangeStart));
+                var endYear = Number(scalePointPosition(rangeEnd));
+
+
+                if (!d3.event.sourceEvent) return; // Only transition after input.
+                if (!d3.event.selection) return; // Ignore empty selections.
+                
+                
+                
+                //var d0 = d3.event.selection.map(xScale.invert)
+                //     d1 = d0.map(d3.timeDay.round);
+
+                // // If empty when rounded, use floor & ceil instead.
+                // if (d1[0] >= d1[1]) {
+                //     d1[0] = d3.timeDay.floor(d0[0]);
+                //     d1[1] = d3.timeDay.offset(d1[0]);
+                // }
+
+                // d3.select(this).transition().call(d3.event.target.move, newrange.map(xScale));
+
+                console.log('start ' + startYear + ' end ' + endYear);
+
             }
 
+
+            function scalePointPosition(point) {
+                var xPos = point;
+                var domain = xScale.domain();
+                var range = xScale.range();
+                var rangePoints = d3.range(range[0], range[1] + 1, xScale.step())
+                var yPos = domain[d3.bisect(rangePoints, xPos) - 1];
+
+                return yPos;
+            }
+
+
+            function closest(array, target) {
+                var tuples = array.map(function (val) {
+                    return [val, Math.abs(val - target)];
+                });
+                return tuples.reduce(function (memo, val) {
+                    return (memo[1] < val[1]) ? memo : val;
+                }, [-1, 999])[0];
+            }
 
             // smoothly handle data updating
             updateData = function () {
