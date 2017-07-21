@@ -1,54 +1,53 @@
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>Construction Dashbaord </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-     body * {
-         font-family : 'Helvetica'
-     }
-    .toolTip {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        position: absolute;
-        display: none;
-        width: auto;
-        height: auto;
-        /*background: none repeat scroll 0 0 white;*/
-        background: rgba(255,255,255,1);	
-        border: 0 none;
-        border-radius: 8px 8px 8px 8px;
-        box-shadow: -3px 3px 15px #888888;
-        color: black;
-        font: 12px sans-serif;
-        padding: 5px;
-        text-align: center;
-       
-    }
+        body * {
+            font-family: 'Helvetica'
+        }
+
+        .toolTip {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            position: absolute;
+            display: none;
+            width: auto;
+            height: auto;
+            /*background: none repeat scroll 0 0 white;*/
+            background: rgba(255, 255, 255, 1);
+            border: 0 none;
+            border-radius: 8px 8px 8px 8px;
+            box-shadow: -3px 3px 15px #888888;
+            color: black;
+            font: 12px sans-serif;
+            padding: 5px;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body translate="no">
 
-  <div  style="position: relative;">
-      <div id ="myLine"  style="float: left;">
-          <p></p>
-      </div>
+    <div style="position: relative; display: inline-block;">
+        <div id="myLine" style="position: relative; clear:both;">
+        </div>
+        <div id="myFilter" style="position: relative; clear:both;">
+        </div>
+    </div>
 
-      <div id ="myPie1" style="float: left;">
-          <p></p>
-      </div>
+   
+    <div id="myPie1" style="position: relative; display: inline-block;"></div>
+       
+    <div id="myPie2" style="position: relative; display: inline-block;"></div>
 
-      <div id ="myPie2" style="float: left;">
-          <p></p>
-      </div>
-  </div>
-  <div style="position: relative;">
-     <div id ="myFilter" style="float: left; ">
-     </div>
-     <div style="float: right; margin-top : 50; margin-right : 200">
-         <button onclick="TestCharts()">Test Charts</button>
-     </div>
- </div>
+    <div style="position: relative;">
+        <div style="float: right; margin-top : 50; margin-right : 200">
+            <button onclick="TestCharts()">Test Charts</button>
+        </div>
+    </div>
+
     <script src="js/d3.v4.min.js"></script>
     <script src="js/processData.js"></script>
     <script src="js/d3scriptfilter.js"></script>
@@ -56,113 +55,170 @@
     <script src="js/d3scriptpie.js"></script>
     <script src="js/tooltip.js"></script>
 
-<script>
+    <script>
+        var pie2Chart;
+        var pie1Chart;
+        var lineChart;
 
-   var pie2Chart;
-   var pie1Chart;
-   var lineChart;
-
-    d3.csv("data/Constructions.csv", function(data) {
-        var result = [];
-        data.forEach(function(d) {
-            for (var property in d) {
+        d3.csv("data/Constructions.csv", function (data) {
+            var result = [];
+            data.forEach(function (d) {
+                for (var property in d) {
                     if (d.hasOwnProperty(property)) {
-                        if(!isNaN(property))
-                        {
+                        if (!isNaN(property)) {
                             result.push({
-                                region : d.Region,
-                                year : property,
-                                value : d[property]
+                                region: d.Region,
+                                year: property,
+                                value: d[property]
                             });
                         }
                     }
                 }
+            });
+
+
+
+            var dataGroupedByRegion = GetRegionData(result);
+            var dataGroupedByYear = GetYearlyData(result);
+            var dataForFilter = GetYearsForFilter(result);
+
+
+            lineChart = drawLineChart()
+                .data({
+                    title: "Construction Number By Region and Year",
+                    data: result
+                });
+
+            pie1Chart = drawPieChart()
+                .data({
+                    title: "Sum Of Constructions By Region",
+                    data: dataGroupedByRegion,
+                    tooltip: true,
+                    outerLabel: true,
+                    shuffleSlices: true
+                })
+                .color('#796799')
+                .tooltipRows([{ left: "Region", right: "{label}" }, { left: "Quantity", right: "{formatedValue}" }])
+
+            pie2Chart = drawPieChart()
+                .data({
+                    title: "Average Construnctions Number By Years",
+                    data: dataGroupedByYear,
+                    tooltip: true,
+                    outerLabel: true,
+                    shuffleSlices: false
+                })
+                .color('#EF4836')
+                .tooltipRows([{ left: "Year", right: "{label}" }, { left: "Avg Constr. Number", right: "{formatedValue}" }])
+
+            var filterChart = renderFilter()
+                .data({
+                    title: "Filter By Year",
+                    data: dataForFilter
+                })
+                .onFilterChange(d => {
+                    pie2Chart.data(d);
+                    pie1Chart.data(d);
+                    lineChart.data(d);
+                });
+
+            d3.select("#myLine").call(lineChart);
+            d3.select("#myPie1").call(pie1Chart);
+            d3.select("#myPie2").call(pie2Chart);
+            d3.select("#myFilter").call(filterChart);
+
         });
 
-        
-
-        var dataGroupedByRegion = GetRegionData(result);
-        var dataGroupedByYear = GetYearlyData(result);
-        var dataForFilter = GetYearsForFilter(result);
-
-
-           lineChart = drawLineChart()
-                         .data({title : "Construction Number By Region and Year", 
-                                data : result});
-         
-           pie1Chart = drawPieChart()
-                         .data({title : "Sum Of Constructions By Region", 
-                                data : dataGroupedByRegion,
-                                tooltip : true,
-                                outerLabel : true,
-                                shuffleSlices : true})
-                         .color('#796799')
-                         .tooltipRows( [{ left: "Region", right: "{label}"},{left: "Quantity", right: "{formatedValue}"}])
-
-           pie2Chart = drawPieChart()
-                         .data({title : "Average Construnctions Number By Years", 
-                                data : dataGroupedByYear, 
-                                tooltip : true,
-                                outerLabel : true,
-                                shuffleSlices : false})
-                         .color('#EF4836')
-                         .tooltipRows( [{ left: "Year", right: "{label}"},{left: "Avg Constr. Number", right: "{formatedValue}"}])
-
-          var filterChart = renderFilter()
-                            .data({
-                                title : "Filter By Year", 
-                                data : dataForFilter
-                            })
-                            .onFilterChange(d=>{
-                                pie2Chart.data(d);
-                                pie1Chart.data(d);
-                                lineChart.data(d);
-                            });
+        function TestCharts() {
+            var result = [{ "region": "Tbilisi", "year": "2011", "value": "425669" },
+            { "region": "Tbilisi", "year": "2012", "value": "821126" },
+              { "region": "Tbilisi", "year": "2013", "value": "821126" },
+                { "region": "Tbilisi", "year": "2014", "value": "821126" },
+                  { "region": "Tbilisi", "year": "2015", "value": "821126" },
+            
+            { "region": "Adjara", "year": "2011", "value": "318193" },
+             { "region": "Adjara", "year": "2012", "value": "318193" },
+              { "region": "Adjara", "year": "2013", "value": "318193" },
+               { "region": "Adjara", "year": "2014", "value": "318193" },
+                { "region": "Adjara", "year": "2015", "value": "318193" },
+            
+            { "region": "Guria", "year": "2011", "value": "21605" },
+            { "region": "Guria", "year": "2012", "value": "6293" },
+              { "region": "Guria", "year": "2013", "value": "21605" },
+                { "region": "Guria", "year": "2014", "value": "21605" },
+                  { "region": "Guria", "year": "2015", "value": "21605" },
+            
+            { "region": "Imereti", "year": "2011", "value": "49860" },
+            { "region": "Imereti", "year": "2012", "value": "99960" },
+            { "region": "Imereti", "year": "2013", "value": "60804" },
+            { "region": "Imereti", "year": "2014", "value": "60804" },
+            { "region": "Imereti", "year": "2015", "value": "60804" },
            
-          d3.select("#myLine").call(lineChart);
-          d3.select("#myPie1").call(pie1Chart);
-          d3.select("#myPie2").call(pie2Chart);
-          d3.select("#myFilter").call(filterChart);
+          
+             { "region": "Kakheti", "year": "2011", "value": "87775" },
+              { "region": "Kakheti", "year": "2012", "value": "87775" },
+               { "region": "Kakheti", "year": "2013", "value": "87775" },
+                { "region": "Kakheti", "year": "2014", "value": "87775" },
+                 { "region": "Kakheti", "year": "2015", "value": "87775" },
+            
+            { "region": "Mtskheta", "year": "2011", "value": "34996" },
+              { "region": "Mtskheta", "year": "2012", "value": "34996" },
+              { "region": "Mtskheta", "year": "2013", "value": "34996" }, 
+                 { "region": "Mtskheta", "year": "2014", "value": "34996" },
+                  { "region": "Mtskheta", "year": "2015", "value": "34996" },
 
-    });
+            { "region": "Samegrelo", "year": "2011", "value": "43158" },
+            { "region": "Samegrelo", "year": "2012", "value": "62885" },
+              { "region": "Samegrelo", "year": "2013", "value": "62885" },
+                { "region": "Samegrelo", "year": "2014", "value": "62885" },
+                  { "region": "Samegrelo", "year": "2015", "value": "62885" },
 
-    function TestCharts(){
-        var result = [{"region":"Tbilisi","year":"2011","value":"425669"},
-                      {"region":"Tbilisi","year":"2012","value":"821126"},
-                      {"region":"Adjara","year":"2013","value":"318193"},
-                      {"region":"Guria","year":"2011","value":"21605"},
-                      {"region":"Guria","year":"2013","value":"6293"},
-                      {"region":"Imereti","year":"2011","value":"49860"},
-                      {"region":"Imereti","year":"2012","value":"99960"},
-                      {"region":"Imereti","year":"2013","value":"60804"},
-                      {"region":"Kakheti","year":"2014","value":"87775"},
-                      {"region":"Mtskheta","year":"2011","value":"34996"},
-                      {"region":"Samegrelo","year":"2011","value":"43158"},
-                      {"region":"Samegrelo","year":"2012","value":"62885"},
-                      {"region":"Samtskhe","year":"2011","value":"21905"},
-                      {"region":"Shida Kartli","year":"2011","value":"9391"},
-                      {"region":"Racha","year":"2011","value":"8243"},
-                      {"region":"Racha","year":"2014","value":"810"},
-                      {"region":"Kvemo Kartli","year":"2014","value":"48040"}];
+            { "region": "Samtskhe", "year": "2011", "value": "21905" },
+               { "region": "Samtskhe", "year": "2012", "value": "21905" },
+                  { "region": "Samtskhe", "year": "2013", "value": "21905" },
+                     { "region": "Samtskhe", "year": "2014", "value": "21905" },
+                        { "region": "Samtskhe", "year": "2015", "value": "21905" },
 
-                     result.forEach(d=>d.value=Math.floor(Math.random()*500000));
+            { "region": "Shida Kartli", "year": "2011", "value": "9391" },
+              { "region": "Shida Kartli", "year": "2012", "value": "9391" },
 
-        var dataGroupedByRegion = GetRegionData(result);
-        var dataGroupedByYear = GetYearlyData(result);
-        
-        
+                { "region": "Shida Kartli", "year": "2013", "value": "9391" }, 
+                  { "region": "Shida Kartli", "year": "2014", "value": "9391" },
+                    { "region": "Shida Kartli", "year": "2015", "value": "9391" },
 
-        pie2Chart.shuffleSlices(false)
-                        .data({title : "Average Construnctions Number By Years", 
-                        data : dataGroupedByYear});
+            { "region": "Racha", "year": "2011", "value": "8243" },
+            { "region": "Racha", "year": "2012", "value": "8243" },
+            { "region": "Racha", "year": "2013", "value": "8243" },
+            { "region": "Racha", "year": "2014", "value": "810" },
+            { "region": "Racha", "year": "2015", "value": "810" },
 
-        pie1Chart.shuffleSlices(false)
-                    .data({data : dataGroupedByRegion });
+            { "region": "Kvemo Kartli", "year": "2011", "value": "48040" },
+             { "region": "Kvemo Kartli", "year": "2012", "value": "48040" },
+              { "region": "Kvemo Kartli", "year": "2013", "value": "48040" },
+               { "region": "Kvemo Kartli", "year": "2014", "value": "48040" },
+                { "region": "Kvemo Kartli", "year": "2015", "value": "48040" }];
 
-        lineChart.data({ data : result});
-        
-    };
-</script>
+            result.forEach(d => d.value = Math.floor(Math.random() * 500000));
+
+            var dataGroupedByRegion = GetRegionData(result);
+            var dataGroupedByYear = GetYearlyData(result);
+
+
+
+            pie2Chart.shuffleSlices(false)
+                .data({
+                    title: "Average Construnctions Number By Years",
+                    data: dataGroupedByYear
+                });
+
+            pie1Chart.shuffleSlices(false)
+                .data({ data: dataGroupedByRegion });
+
+            lineChart.data({ data: result });
+
+        };
+    </script>
 
 </body>
+
 </html>

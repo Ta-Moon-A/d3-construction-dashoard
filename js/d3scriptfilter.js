@@ -40,7 +40,7 @@ function renderFilter(params) {
             calc.chartWidth = attrs.svgWidth - attrs.marginRight - calc.chartLeftMargin;
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
             calc.filterHeight = attrs.filterHeight;
-            debugger;
+           
             //drawing
             var svg = d3.select(this)
                 .append('svg')
@@ -95,7 +95,7 @@ function renderFilter(params) {
             var xAxis = d3.axisBottom().scale(xScale).tickSize(5);
 
             brushContainer.call(xAxis);
-            brushContainer.call(brush).call(brush.event); //.call(brush).call(brush.move, xScale.range());
+            brushContainer.call(brush).call(brush).call(brush.move, xScale.range());
 
             brushContainer.selectAll("rect")
                 .attr("y", 0)
@@ -105,6 +105,9 @@ function renderFilter(params) {
             function brushed() {
                 debugger;
 
+                if (!d3.event.sourceEvent) return; // Only transition after input.
+                if (!d3.event.selection) return; // Ignore empty selections.
+
                 var range = xScale.range();
                 var s = d3.event.selection || range;
 
@@ -113,30 +116,17 @@ function renderFilter(params) {
                 var rangeStart = closest(rangePoints, s[0]);
                 var rangeEnd = closest(rangePoints, s[1]);
 
-
-
-
                 var startYear = Number(scalePointPosition(rangeStart));
                 var endYear = Number(scalePointPosition(rangeEnd));
 
 
-                if (!d3.event.sourceEvent) return; // Only transition after input.
-                if (!d3.event.selection) return; // Ignore empty selections.
-                
-                
-                
-                //var d0 = d3.event.selection.map(xScale.invert)
-                //     d1 = d0.map(d3.timeDay.round);
 
-                // // If empty when rounded, use floor & ceil instead.
-                // if (d1[0] >= d1[1]) {
-                //     d1[0] = d3.timeDay.floor(d0[0]);
-                //     d1[1] = d3.timeDay.offset(d1[0]);
-                // }
 
-                // d3.select(this).transition().call(d3.event.target.move, newrange.map(xScale));
+                var newRange = [];
+                newRange[0] = startYear;
+                newRange[1] = endYear;
 
-                console.log('start ' + startYear + ' end ' + endYear);
+                d3.select(this).transition().call(d3.event.target.move, newRange.map(xScale));
 
             }
 

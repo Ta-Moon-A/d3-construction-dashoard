@@ -53,8 +53,7 @@ function GetGroupedDataForLineChart(initialData)
 
 function GetYearsForFilter(initialData)
 {
-    debugger;
-    var groupedData =  initialData.map(function(d){
+     var groupedData =  initialData.map(function(d){
                              return Number(d.year);
                           });
 
