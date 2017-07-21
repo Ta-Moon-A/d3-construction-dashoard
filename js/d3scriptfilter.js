@@ -128,6 +128,8 @@ function renderFilter(params) {
 
                 d3.select(this).transition().call(d3.event.target.move, newRange.map(xScale));
 
+                attrs.chartUpdateFunc({start : startYear,end : endYear});
+
             }
 
 
@@ -190,7 +192,8 @@ function renderFilter(params) {
 
 
     main.onFilterChange = function (chartUpdateFunc) {
-        //  attrs.chartUpdateFunc = chartUpdateFunc;
+       
+        attrs.chartUpdateFunc = chartUpdateFunc;
         return main;
     }
 

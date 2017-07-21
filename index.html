@@ -117,9 +117,20 @@
                     data: dataForFilter
                 })
                 .onFilterChange(d => {
-                    pie2Chart.data(d);
-                    pie1Chart.data(d);
-                    lineChart.data(d);
+                            debugger;
+                            
+                            var filteredDataForPie1 = GetRegionData(result,d.start,d.end);
+                            var filteredDataForPie2 = GetYearlyData(result,d.start,d.end);
+                            var filteredDataForLine = 3;
+                          
+                            pie2Chart.shuffleSlices(false)
+                                    .data({ title: "Average Construnctions Number By Years",
+                                            data: filteredDataForPie2 });
+
+                            pie1Chart.shuffleSlices(false)
+                                     .data({ data: filteredDataForPie1 });
+
+                            // lineChart.data({ data: filteredDataForLine }); 
                 });
 
             d3.select("#myLine").call(lineChart);

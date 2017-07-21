@@ -1,7 +1,16 @@
 
 
-function GetRegionData(initialData)
+function GetRegionData(initialData,start = null,end = null)
 {
+    
+
+    if(start!=null && end!=null && start!=end)
+    {
+         initialData = initialData.filter(function(d){
+            return Number(d.year) >= Number(start) && Number(d.year) < Number(end)
+        });
+    }
+
      var nestedData = d3.nest().key(function(d){ return d.region; })
                                .rollup(function(leaves){ 
                                           return { 
@@ -15,9 +24,15 @@ function GetRegionData(initialData)
 
 
 
-function GetYearlyData(initialData)
+function GetYearlyData(initialData,start = null,end = null)
 {
-     
+    if(start!=null && end!=null && start!=end )
+    {
+          initialData = initialData.filter(function(d){
+            return Number(d.year) >= Number(start) && Number(d.year) < Number(end)
+        });
+    }
+
      var nestedData = d3.nest().key(function(d){ return d.year; })
                                .rollup(function(leaves){ 
                                           return { 
@@ -30,7 +45,7 @@ function GetYearlyData(initialData)
 
 
 
-function GetGroupedDataForLineChart(initialData)
+function GetGroupedDataForLineChart(initialData,start = null,end = null)
 {
      var nestedData = d3.nest().key(function(d){ return d.region; })
                                .rollup(function(leaves){ 
