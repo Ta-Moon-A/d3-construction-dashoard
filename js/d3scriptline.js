@@ -46,7 +46,8 @@ function drawLineChart(params) {
         marginRight: 20,
         marginLeft: 50,
         data: null,
-        transTimeOut: 1000,
+        transTimeOut: 5000,
+        groupedData : null
     };
 
 
@@ -147,9 +148,8 @@ function drawLineChart(params) {
                     .domain(d3.extent(attrs.data.data, function (d) { return Number(d.value); }))
                     .range([calc.chartHeight, 0]);
 
-                var groupedData = GetGroupedDataForLineChart(attrs.data.data);
-
-
+                debugger;
+                var groupedData = attrs.data.groupedData;  // GetGroupedDataForLineChart(attrs.data.data);
 
                 var yAxis = d3.axisLeft().scale(yScale).tickSize(-calc.chartWidth);;
                 var xAxis = d3.axisBottom().scale(xScale).tickSize(-calc.chartHeight);
@@ -176,8 +176,9 @@ function drawLineChart(params) {
                 var lineExit = line.exit().remove();
 
 
-                line = line.enter()
+                line = line.enter()    
                     .append('path')
+                
                     .merge(line)
                     .attr("stroke", function (d) {
                         return color(d.region);

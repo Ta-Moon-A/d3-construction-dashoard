@@ -42,11 +42,11 @@
        
     <div id="myPie2" style="position: relative; display: inline-block;"></div>
 
-    <div style="position: relative;">
+    <!--<div style="position: relative;">
         <div style="float: right; margin-top : 50; margin-right : 200">
             <button onclick="TestCharts()">Test Charts</button>
         </div>
-    </div>
+    </div>-->
 
     <script src="js/d3.v4.min.js"></script>
     <script src="js/processData.js"></script>
@@ -59,6 +59,7 @@
         var pie2Chart;
         var pie1Chart;
         var lineChart;
+        var filterChart;
 
         d3.csv("data/Constructions.csv", function (data) {
             var result = [];
@@ -81,12 +82,13 @@
             var dataGroupedByRegion = GetRegionData(result);
             var dataGroupedByYear = GetYearlyData(result);
             var dataForFilter = GetYearsForFilter(result);
-
+            var groupedDataForLine = GetGroupedDataForLineChart(result);
 
             lineChart = drawLineChart()
                 .data({
                     title: "Construction Number By Region and Year",
-                    data: result
+                    data: result,
+                    groupedData : groupedDataForLine
                 });
 
             pie1Chart = drawPieChart()
@@ -111,26 +113,24 @@
                 .color('#EF4836')
                 .tooltipRows([{ left: "Year", right: "{label}" }, { left: "Avg Constr. Number", right: "{formatedValue}" }])
 
-            var filterChart = renderFilter()
+             filterChart = renderFilter()
                 .data({
                     title: "Filter By Year",
                     data: dataForFilter
                 })
                 .onFilterChange(d => {
-                            debugger;
                             
                             var filteredDataForPie1 = GetRegionData(result,d.start,d.end);
                             var filteredDataForPie2 = GetYearlyData(result,d.start,d.end);
-                            var filteredDataForLine = 3;
-                          
-                            pie2Chart.shuffleSlices(false)
-                                    .data({ title: "Average Construnctions Number By Years",
-                                            data: filteredDataForPie2 });
+                            var filteredDataForLine = GetFilteredDataForLineChart(result,d.start,d.end);
+                            var filteredGroupedDataForLine = GetGroupedDataForLineChart(result,d.start,d.end);
 
-                            pie1Chart.shuffleSlices(false)
-                                     .data({ data: filteredDataForPie1 });
 
-                            // lineChart.data({ data: filteredDataForLine }); 
+                            pie2Chart.shuffleSlices(false).data({ data: filteredDataForPie2 });
+
+                            pie1Chart.shuffleSlices(false).data({ data: filteredDataForPie1 });
+
+                            lineChart.data({ data: filteredDataForLine, groupedData :filteredGroupedDataForLine }); 
                 });
 
             d3.select("#myLine").call(lineChart);
@@ -213,19 +213,16 @@
 
             var dataGroupedByRegion = GetRegionData(result);
             var dataGroupedByYear = GetYearlyData(result);
+            var groupedDataForLine = GetGroupedDataForLineChart(result);
 
 
+            pie2Chart.shuffleSlices(false).data({
+                                                title: "Average Construnctions Number By Years",
+                                                data: dataGroupedByYear
+                                            });
 
-            pie2Chart.shuffleSlices(false)
-                .data({
-                    title: "Average Construnctions Number By Years",
-                    data: dataGroupedByYear
-                });
-
-            pie1Chart.shuffleSlices(false)
-                .data({ data: dataGroupedByRegion });
-
-            lineChart.data({ data: result });
+            pie1Chart.shuffleSlices(false).data({ data: dataGroupedByRegion });
+            lineChart.data({ data: result,  groupedData : groupedDataForLine });
 
         };
     </script>

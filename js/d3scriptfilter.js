@@ -125,9 +125,17 @@ function renderFilter(params) {
                 var newRange = [];
                 newRange[0] = startYear;
                 newRange[1] = endYear;
-
-                d3.select(this).transition().call(d3.event.target.move, newRange.map(xScale));
-
+                
+                if(startYear == endYear)
+                {
+                     var range =  newRange.map(xScale);
+                     var updatedRange = [range[0]-10, range[1]+10];
+                     d3.select(this).transition().call(d3.event.target.move, updatedRange);
+                }
+                else{
+                   d3.select(this).transition().call(d3.event.target.move, newRange.map(xScale));
+                }
+               
                 attrs.chartUpdateFunc({start : startYear,end : endYear});
 
             }
