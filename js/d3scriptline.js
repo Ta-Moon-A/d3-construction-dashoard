@@ -46,8 +46,8 @@ function drawLineChart(params) {
         marginRight: 20,
         marginLeft: 50,
         data: null,
-        transTimeOut: 5000,
-        groupedData : null
+        transTimeOut: 1000,
+        groupedData: null
     };
 
 
@@ -78,7 +78,7 @@ function drawLineChart(params) {
             calc.chartWidth = attrs.svgWidth - attrs.marginRight - calc.chartLeftMargin;
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
-            
+
 
             //drawing
             var svg = d3.select(this)
@@ -157,13 +157,13 @@ function drawLineChart(params) {
                 chart.selectAll("g .yaxis").transition().duration(attrs.transTimeOut).call(yAxis);
 
                 chart.selectAll(" .tick line")
-                     .attr('stroke','lightgrey')
-                     .attr('stroke-width','0.7px')
-                     .attr('stroke-dasharray','5,3');
-               
+                    .attr('stroke', 'lightgrey')
+                    .attr('stroke-width', '0.7px')
+                    .attr('stroke-dasharray', '5,3');
+
                 chart.selectAll('.domain')
-                    .attr('stroke-width','0.1px')
-                    .attr('stroke','lightgrey');
+                    .attr('stroke-width', '0.1px')
+                    .attr('stroke', 'lightgrey');
 
                 var pathline = d3.line()
                     .curve(d3.curveBasis)
@@ -176,9 +176,9 @@ function drawLineChart(params) {
                 var lineExit = line.exit().remove();
 
 
-                line = line.enter()    
+                line = line.enter()
+
                     .append('path')
-                
                     .merge(line)
                     .attr("stroke", function (d) {
                         return color(d.region);
@@ -187,8 +187,12 @@ function drawLineChart(params) {
                     .attr("fill", 'none')
                     .attr('class', 'pathline')
                     .transition()
+                    .ease(d3.easeLinear)
                     .duration(attrs.transTimeOut)
-                    .attr("d", function (d) { return pathline(d.data) });
+
+                    //.on("start", tick)
+                    //.attr("d", function (d) { return pathline(d.data) })
+                    .attrTween("d", function (d) { return pathTween(pathline(d.data), 4, this) });
 
 
                 var rect = chart.selectAll('.overlay').data(['overlay']);
@@ -211,6 +215,27 @@ function drawLineChart(params) {
                 // path.on('mouseout', function (d) {
 
                 // });
+
+                function pathTween(d1, precision, path0) {
+                    var path1 = path0.cloneNode(),
+                        n0 = path0.getTotalLength(),
+                        n1 = (path1.setAttribute("d", d1), path1).getTotalLength();
+                    // Uniform sampling of distance based on specified precision.
+                    var distances = [0], i = 0, dt = precision / Math.max(n0, n1);
+                    while ((i += dt) < 1) {
+                        distances.push(i);
+                    }
+                    distances.push(1);
+                    // Compute point-interpolators at each distance.
+                    var points = distances.map(function (t) {
+                        var p0 = path0.getPointAtLength(t * n0),
+                            p1 = path1.getPointAtLength(t * n1);
+                        return d3.interpolate([p0.x, p0.y], [p1.x, p1.y]);
+                    });
+                    return function (t) {
+                        return "M" + points.map(function (p) { return p(t); }).join("L");
+                    };
+                }
             }
 
 
