@@ -47,7 +47,8 @@ function drawLineChart(params) {
         marginLeft: 50,
         data: null,
         transTimeOut: 1000,
-        groupedData: null
+        groupedData: null,
+          slicesOpacity: 0.3,
     };
 
 
@@ -185,8 +186,10 @@ function drawLineChart(params) {
                     })
                     .attr('stroke-width', '2')
                     .attr("fill", 'none')
-                    .attr('class', 'pathline')
-                    .transition()
+                    .attr('class', 'pathline');
+
+
+                   line.transition()
                     .ease(d3.easeLinear)
                     .duration(attrs.transTimeOut)
 
@@ -207,14 +210,14 @@ function drawLineChart(params) {
                     .attr('width', 0)
 
                 // -----------------------------------  Events  -----------------------------------
-                // path.on('mouseenter', function (d) {
+                line.on('mouseover', function (d) {
+                        line.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
+                });
 
-                // });
 
-
-                // path.on('mouseout', function (d) {
-
-                // });
+                line.on('mouseout', function (d) {
+                         line.attr('opacity', 1).attr('filter', 'none');
+                 });
 
                 function pathTween(d1, precision, path0) {
                     var path1 = path0.cloneNode(),
