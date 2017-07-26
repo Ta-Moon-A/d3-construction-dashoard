@@ -48,7 +48,7 @@ function drawLineChart(params) {
         data: null,
         transTimeOut: 1000,
         groupedData: null,
-          slicesOpacity: 0.3,
+        slicesOpacity: 0.3,
     };
 
 
@@ -89,6 +89,47 @@ function drawLineChart(params) {
             // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
             // .attr("preserveAspectRatio", "xMidYMid meet")
 
+            //################################   FILTERS  &   SHADOWS  ##################################
+
+            // Add filters ( Shadows)
+            var defs = svg.append("defs");
+
+            calc.dropShadowUrl = "id";
+            calc.filterUrl = `url(#id)`;
+            //Drop shadow filter
+            var dropShadowFilter = defs
+                .append("filter")
+                .attr("id", 'id')
+                .attr("height", "130%");
+            dropShadowFilter
+                .append("feGaussianBlur")
+                .attr("in", "SourceAlpha")
+                .attr("stdDeviation", 5)
+                .attr("result", "blur");
+            dropShadowFilter
+                .append("feOffset")
+                .attr("in", "blur")
+                .attr("dx", 2)
+                .attr("dy", 4)
+                .attr("result", "offsetBlur");
+
+            dropShadowFilter
+                .append("feFlood")
+                .attr("flood-color", "black")
+                .attr("flood-opacity", "0.4")
+                .attr("result", "offsetColor");
+            dropShadowFilter
+                .append("feComposite")
+                .attr("in", "offsetColor")
+                .attr("in2", "offsetBlur")
+                .attr("operator", "in")
+                .attr("result", "offsetBlur");
+
+            var feMerge = dropShadowFilter.append("feMerge");
+            feMerge.append("feMergeNode").attr("in", "offsetBlur");
+            feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+            // ################################ FILTERS  &   SHADOWS  END ##################################
 
 
             var chart = svg.append('g')
@@ -166,8 +207,30 @@ function drawLineChart(params) {
                     .attr('stroke-width', '0.1px')
                     .attr('stroke', 'lightgrey');
 
+
+                var dots = chart.selectAll("circle")
+                    .data(function (d) { d; return attrs.data.data; });
+
+                var dotsExit = dots.exit().remove();
+
+
+                dots = dots.enter().append("circle")
+                    .merge(dots)
+                    .attr("r", 7)
+                    .attr("class", "circle")
+                    .attr('fill', '	#8FBC8F')
+                    .attr('stroke','#2F4F4F')
+                    .attr("stroke-width", 0);
+
+
+                dots.transition().ease(d3.easeLinear).duration(attrs.transTimeOut)
+                    .attr("cx", function (d) { return xScale(Number(d.year)); })
+                    .attr("cy", function (d) { return yScale(Number(d.value)); });
+
+
+
                 var pathline = d3.line()
-                    .curve(d3.curveBasis)
+                    .curve(d3.curveCardinal)
                     .x(function (d) { return xScale(d.year); })
                     .y(function (d) { return yScale(d.value); });
 
@@ -178,23 +241,19 @@ function drawLineChart(params) {
 
 
                 line = line.enter()
-
                     .append('path')
                     .merge(line)
                     .attr("stroke", function (d) {
                         return color(d.region);
                     })
-                    .attr('stroke-width', '2')
+                    .attr('stroke-width', '3')
                     .attr("fill", 'none')
                     .attr('class', 'pathline');
 
 
-                   line.transition()
+                line.transition()
                     .ease(d3.easeLinear)
                     .duration(attrs.transTimeOut)
-
-                    //.on("start", tick)
-                    //.attr("d", function (d) { return pathline(d.data) })
                     .attrTween("d", function (d) { return pathTween(pathline(d.data), 4, this) });
 
 
@@ -203,21 +262,58 @@ function drawLineChart(params) {
                 rect.enter().append('rect')
                     .attr('width', calc.chartWidth)
                     .attr('height', calc.chartHeight)
-                    .attr('fill', 'white')
+                    .attr('fill', 'none')
                     .attr('class', 'overlay')
                     .transition().duration(2000)
                     .attr('transform', `translate(${calc.chartWidth})`)
                     .attr('width', 0)
 
+
                 // -----------------------------------  Events  -----------------------------------
                 line.on('mouseover', function (d) {
-                        line.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
+                    d3.select(this).attr('filter', calc.filterUrl);
+                    line.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
                 });
 
 
                 line.on('mouseout', function (d) {
-                         line.attr('opacity', 1).attr('filter', 'none');
-                 });
+                    line.attr('opacity', 1).attr('filter', 'none');
+                });
+
+
+                dots.on("mouseover", function (d) {
+                    circle = d3.select(this);
+                    circleTransition(circle);
+                })
+                dots.on("mouseout", function (d) {
+                    circle = d3.select(this)
+                        .transition()
+                        .duration(500)
+                        .attr("stroke-width",'7')
+                        .attr("r", 7)
+                         .attr("stroke-width", 0.5);
+                });
+
+
+                function circleTransition(circle) {
+
+                    repeat();
+
+                    function repeat() {
+                        circle.transition()
+                            .duration(500)
+                            .attr('stroke-width', '7')
+                            .attr("r", 1)
+                            
+                            .transition()
+                            .duration(500)
+                            .attr('stroke-width', '0.5')
+                            .attr("r", 7)
+                            //.ease('sine')    
+                            .on("end", repeat);  
+                    };
+
+                };
 
                 function pathTween(d1, precision, path0) {
                     var path1 = path0.cloneNode(),
