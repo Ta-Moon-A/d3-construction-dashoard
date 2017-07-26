@@ -208,26 +208,6 @@ function drawLineChart(params) {
                     .attr('stroke', 'lightgrey');
 
 
-                var dots = chart.selectAll("circle")
-                    .data(function (d) { d; return attrs.data.data; });
-
-                var dotsExit = dots.exit().remove();
-
-
-                dots = dots.enter().append("circle")
-                    .merge(dots)
-                    .attr("r", 7)
-                    .attr("class", "circle")
-                    .attr('fill', '	#8FBC8F')
-                    .attr('stroke','#2F4F4F')
-                    .attr("stroke-width", 0);
-
-
-                dots.transition().ease(d3.easeLinear).duration(attrs.transTimeOut)
-                    .attr("cx", function (d) { return xScale(Number(d.year)); })
-                    .attr("cy", function (d) { return yScale(Number(d.value)); });
-
-
 
                 var pathline = d3.line()
                     .curve(d3.curveCardinal)
@@ -269,6 +249,29 @@ function drawLineChart(params) {
                     .attr('width', 0)
 
 
+                var dots = chart.selectAll("circle")
+                    .data(function (d) { d; return attrs.data.data; });
+
+                var dotsExit = dots.exit().remove();
+
+
+                dots = dots.enter().append("circle")
+                    .merge(dots)
+                    .attr("r", 3)
+                    .attr("class", "circle")
+                    .attr('fill', '#2F4F4F')
+                    .attr('stroke', '#8FBC8F')
+                    .attr("stroke-width", 5)
+                    .attr('opacity','0.5');
+
+
+                dots.transition().ease(d3.easeLinear).duration(attrs.transTimeOut)
+                    .attr("cx", function (d) { return xScale(Number(d.year)); })
+                    .attr("cy", function (d) { return yScale(Number(d.value)); });
+
+
+
+
                 // -----------------------------------  Events  -----------------------------------
                 line.on('mouseover', function (d) {
                     d3.select(this).attr('filter', calc.filterUrl);
@@ -289,10 +292,9 @@ function drawLineChart(params) {
                     circle = d3.select(this)
                         .transition()
                         .duration(500)
-                        .attr("stroke-width",'7')
-                        .attr("r", 7)
-                         .attr("stroke-width", 0.5);
-                });
+                        .attr("r", 3)
+                         .attr("stroke-width", 5);
+                }); 
 
 
                 function circleTransition(circle) {
@@ -302,15 +304,15 @@ function drawLineChart(params) {
                     function repeat() {
                         circle.transition()
                             .duration(500)
-                            .attr('stroke-width', '7')
-                            .attr("r", 1)
-                            
+                            .attr('stroke-width', '5')
+                            .attr("r", 3)
+
                             .transition()
                             .duration(500)
                             .attr('stroke-width', '0.5')
-                            .attr("r", 7)
+                            .attr("r", 10)
                             //.ease('sine')    
-                            .on("end", repeat);  
+                            .on("end", repeat);
                     };
 
                 };
