@@ -36,6 +36,8 @@ function getTransformation(transform) {
 }
 
 
+
+
 function drawLineChart(params) {
     // exposed variables
     var attrs = {
@@ -133,10 +135,15 @@ function drawLineChart(params) {
 
 
             var chart = svg.append('g')
+
+                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')');
+
+                chart.append('rect')
                 .attr('width', calc.chartWidth)
                 .attr('height', calc.chartHeight)
-                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')')
-
+                .attr('fill', 'white')
+                .attr('pointer-events', 'all')
+                ;
 
             var chartTitle = svg.append('g')
                 .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
@@ -262,7 +269,7 @@ function drawLineChart(params) {
                     .attr('fill', '#2F4F4F')
                     .attr('stroke', '#8FBC8F')
                     .attr("stroke-width", 5)
-                    .attr('opacity','0.5');
+                    .attr('opacity', '0.5');
 
 
                 dots.transition().ease(d3.easeLinear).duration(attrs.transTimeOut)
@@ -273,9 +280,19 @@ function drawLineChart(params) {
 
 
                 // -----------------------------------  Events  -----------------------------------
-                line.on('mouseover', function (d) {
+                line.on('mouseenter', function (d) {
+                    // shadow 
                     d3.select(this).attr('filter', calc.filterUrl);
+
+                    // visibility 
                     line.filter(v => v != d).attr('opacity', attrs.slicesOpacity);
+
+                    // get selected line upper 
+                    chart.selectAll(".pathline").sort(function (a, b) { // select the parent and sort the path's     
+                        if (a.region != d.region) return -1; // a is not the hovered element, send "a" to the back     
+                        else return 1; // a is the hovered element, bring "a" to the front     
+                    });
+
                 });
 
 
@@ -293,10 +310,22 @@ function drawLineChart(params) {
                         .transition()
                         .duration(500)
                         .attr("r", 3)
-                         .attr("stroke-width", 5);
-                }); 
+                        .attr("stroke-width", 5);
+                });
 
 
+                chart.on("mouseover", function (d) {
+                  var mouseX = d3.event.pageX - calc.chartLeftMargin;
+                    var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
+
+                    console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
+                });
+
+
+
+
+
+                // -------------------------------------  helpers -----------------------------------------------
                 function circleTransition(circle) {
 
                     repeat();
@@ -339,7 +368,12 @@ function drawLineChart(params) {
                 }
             }
 
+        function charMouseOver() {
+                    var mouseX = d3.event.pageX - calc.chartLeftMargin;
+                    var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
 
+                    console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
+                }
 
 
         });
