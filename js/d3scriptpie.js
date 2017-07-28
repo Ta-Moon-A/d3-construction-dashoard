@@ -23,7 +23,7 @@ function drawPieChart(params) {
     // exposed variables
     var attrs = {
         svgWidth: 400,
-        svgHeight: 400,
+        svgHeight: 500,
         marginTop: 20,
         marginBottom: 5,
         marginRight: 5,

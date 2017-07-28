@@ -41,16 +41,16 @@ function getTransformation(transform) {
 function drawLineChart(params) {
     // exposed variables
     var attrs = {
-        svgWidth: 700,
+        svgWidth: 800,
         svgHeight: 400,
         marginTop: 20,
         marginBottom: 50,
-        marginRight: 20,
+        marginRight: 50,
         marginLeft: 50,
         data: null,
         transTimeOut: 1000,
         groupedData: null,
-        slicesOpacity: 0.3,
+        slicesOpacity: 0.1,
     };
 
 
@@ -81,15 +81,13 @@ function drawLineChart(params) {
             calc.chartWidth = attrs.svgWidth - attrs.marginRight - calc.chartLeftMargin;
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
-
+              var format = d3.format(".2s");
 
             //drawing
             var svg = d3.select(this)
                 .append('svg')
                 .attr('width', attrs.svgWidth)
-                .attr('height', attrs.svgHeight)
-            // .attr("viewBox", "0 0 " + attrs.svgWidth + " " + attrs.svgHeight)
-            // .attr("preserveAspectRatio", "xMidYMid meet")
+                .attr('height', attrs.svgHeight);
 
             //################################   FILTERS  &   SHADOWS  ##################################
 
@@ -135,27 +133,17 @@ function drawLineChart(params) {
 
 
             var chart = svg.append('g')
+                           .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')');
 
-                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')');
-
-                chart.append('rect')
-                .attr('width', calc.chartWidth)
-                .attr('height', calc.chartHeight)
-                .attr('fill', 'white')
-                .attr('pointer-events', 'all')
-                ;
 
             var chartTitle = svg.append('g')
-                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
+                                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
 
             // pie title 
             chartTitle.append("text")
                 .text(attrs.data.title)
                 .attr('fill', 'black')
                 .style('font-weight', 'bold');
-
-            debugger;
-
 
 
             var color = d3.scaleOrdinal(d3.schemeCategory20b);
@@ -171,24 +159,17 @@ function drawLineChart(params) {
                 .attr('stroke-width', '2')
                 .attr("class", "yaxis");
 
-
-
             renderPieChart(attrs, calc);
 
 
-
-
-            // ################################ Update Chart ##########################################################
+           // ################################ Update Chart ##########################################################
             updateData = function () {
-                debugger;
                 renderPieChart(attrs, calc);
             }
 
             // ################################ Render Chart ##########################################################
             function renderPieChart(attrs, calc) {
-                // -----------------------------------  Process Data -----------------------------------
-
-
+              
                 var xScale = d3.scalePoint()
                     .domain(attrs.data.data.map(function (d) { return Number(d.year); }).filter(onlyUnique))
                     .range([0, calc.chartWidth]);
@@ -197,15 +178,20 @@ function drawLineChart(params) {
                     .domain(d3.extent(attrs.data.data, function (d) { return Number(d.value); }))
                     .range([calc.chartHeight, 0]);
 
-                debugger;
-                var groupedData = attrs.data.groupedData;  // GetGroupedDataForLineChart(attrs.data.data);
+                var voronoi = d3.voronoi()
+                    .x(function (d) { return xScale(Number(d.year)); })
+                    .y(function (d) { return yScale(Number(d.value)); })
+                    .extent([[-calc.chartLeftMargin, -calc.chartTopMargin], [calc.chartWidth, calc.chartHeight]]);
+
+
+               var groupedData = attrs.data.groupedData;  
 
                 var yAxis = d3.axisLeft().scale(yScale).tickSize(-calc.chartWidth);;
                 var xAxis = d3.axisBottom().scale(xScale).tickSize(-calc.chartHeight);
                 chart.selectAll("g .xaxis").transition().duration(attrs.transTimeOut).call(xAxis);
                 chart.selectAll("g .yaxis").transition().duration(attrs.transTimeOut).call(yAxis);
 
-                chart.selectAll(" .tick line")
+                chart.selectAll(".tick line")
                     .attr('stroke', 'lightgrey')
                     .attr('stroke-width', '0.7px')
                     .attr('stroke-dasharray', '5,3');
@@ -222,7 +208,7 @@ function drawLineChart(params) {
                     .y(function (d) { return yScale(d.value); });
 
                 var line = chart.selectAll(".pathline")
-                    .data(groupedData);
+                                .data(groupedData);
 
                 var lineExit = line.exit().remove();
 
@@ -237,6 +223,13 @@ function drawLineChart(params) {
                     .attr("fill", 'none')
                     .attr('class', 'pathline');
 
+                // need for voronoi  polygon 
+                line.each(function (d) {
+                    d.line = this;
+                    d.data.forEach(x => {
+                        x.line = this;
+                    });
+                });
 
                 line.transition()
                     .ease(d3.easeLinear)
@@ -277,6 +270,43 @@ function drawLineChart(params) {
                     .attr("cy", function (d) { return yScale(Number(d.value)); });
 
 
+                var focus = chart
+                                //  .selectAll()
+                                //  .data([1])
+                                 .append("g")
+                                 .attr("transform", "translate(-100,-100)")
+                                 .attr("class", "focus");
+
+                focus.append("circle")
+                    .attr("r", 3)
+                    .attr("class", "toolCircle")
+                    .attr('fill', '#2F4F4F')
+                    .attr('stroke', '#8FBC8F')
+                    .attr("stroke-width", 5)
+                    .attr('opacity', '0.5');
+
+                focus.append("text")
+                    .attr("y", -10);
+
+                var voronoiGroup = chart.append("g")
+                    .attr('fill', 'none')
+                    .attr('pointer-events', 'all')
+                    .attr("class", "voronoi");
+
+
+
+                var voronoi =  voronoiGroup.selectAll("path")
+                                           .data(voronoi.polygons(d3.merge(groupedData.map(function (d) {
+                                                return d.data;
+                                            }))));
+
+                voronoiExit = voronoi.exit().remove();
+
+                voronoi = voronoi.enter().append("path")
+                    .merge(voronoi)
+                    .attr("d", function (d) { return d ? "M" + d.join("L") + "Z" : null; })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
 
 
                 // -----------------------------------  Events  -----------------------------------
@@ -301,27 +331,39 @@ function drawLineChart(params) {
                 });
 
 
-                dots.on("mouseover", function (d) {
-                    circle = d3.select(this);
+                // dots.on("mouseover", function (d) {
+                //     circle = d3.select(this);
+                //     circleTransition(circle);
+                // })
+                // dots.on("mouseout", function (d) {
+                //     circle = d3.select(this)
+                //         .transition()
+                //         .duration(500)
+                //         .attr("r", 3)
+                //         .attr("stroke-width", 5);
+                // });
+
+
+
+
+                function mouseover(d) {
+                    debugger;
+                    d3.select(d.data.line).classed("city--hover", true);
+                    d.data.line.parentNode.appendChild(d.data.line);
+                   
+                   focus.select("circle").style('display','inline');
+                    focus.attr("transform", "translate(" + xScale(d.data.year) + "," + yScale(d.data.value) + ")");
+                    focus.select("text").text(d.data.region + ' - ' + format(d.data.value));
+                    
+                    circle = focus.selectAll('circle');
                     circleTransition(circle);
-                })
-                dots.on("mouseout", function (d) {
-                    circle = d3.select(this)
-                        .transition()
-                        .duration(500)
-                        .attr("r", 3)
-                        .attr("stroke-width", 5);
-                });
+                }
 
-
-                chart.on("mouseover", function (d) {
-                  var mouseX = d3.event.pageX - calc.chartLeftMargin;
-                    var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
-
-                    console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
-                });
-
-
+                function mouseout(d) {
+                    debugger;
+                    d3.select(d.data.line).classed("city--hover", false);
+                    focus.select("circle").style('display','none');
+                }
 
 
 
@@ -335,12 +377,10 @@ function drawLineChart(params) {
                             .duration(500)
                             .attr('stroke-width', '5')
                             .attr("r", 3)
-
                             .transition()
                             .duration(500)
                             .attr('stroke-width', '0.5')
                             .attr("r", 10)
-                            //.ease('sine')    
                             .on("end", repeat);
                     };
 
@@ -368,12 +408,12 @@ function drawLineChart(params) {
                 }
             }
 
-        function charMouseOver() {
-                    var mouseX = d3.event.pageX - calc.chartLeftMargin;
-                    var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
+            function charMouseOver() {
+                var mouseX = d3.event.pageX - calc.chartLeftMargin;
+                var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
 
-                    console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
-                }
+                console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
+            }
 
 
         });

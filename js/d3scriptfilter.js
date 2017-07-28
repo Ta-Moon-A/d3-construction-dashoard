@@ -1,11 +1,11 @@
 function renderFilter(params) {
     // exposed variables
     var attrs = {
-        svgWidth: 630,
+        svgWidth: 700,
         svgHeight: 100,
         marginTop: 50,
         marginBottom: 5,
-        marginRight: 10,
+        marginRight: 50,
         marginLeft: 50,
         data: null,
         filterHeight: 40
