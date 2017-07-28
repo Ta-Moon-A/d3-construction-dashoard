@@ -50,11 +50,11 @@ function renderFilter(params) {
 
 
             var chart = svg.append('g')
-                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 10) + ')')
+                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin - 10 ) +')')
 
 
             var chartTitle = svg.append('g')
-                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + (calc.chartTopMargin - 20 )+ ')');
 
             // pie title 
             chartTitle.append("text")

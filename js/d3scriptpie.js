@@ -22,12 +22,12 @@ function midAngle(d) {
 function drawPieChart(params) {
     // exposed variables
     var attrs = {
-        svgWidth: 420,
+        svgWidth: 400,
         svgHeight: 400,
         marginTop: 20,
         marginBottom: 5,
         marginRight: 5,
-        marginLeft: 70,
+        marginLeft: 40,
         showCenterText: false,
         data: null,
         radius: 150,
