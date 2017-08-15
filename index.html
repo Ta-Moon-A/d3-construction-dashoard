@@ -93,7 +93,8 @@
                     title: "Construction Number By Region and Year",
                     data: result,
                     groupedData: groupedDataForLine
-                });
+                })
+                .tooltipRows([{ left: "Region", right: "{region}" }, { left: "Number", right: "{value}" }]);
 
             pie1Chart = drawPieChart()
                 .data({

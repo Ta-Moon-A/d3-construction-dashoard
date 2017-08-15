@@ -81,7 +81,7 @@ function drawLineChart(params) {
             calc.chartWidth = attrs.svgWidth - attrs.marginRight - calc.chartLeftMargin;
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
-              var format = d3.format(".2s");
+            var format = d3.format(".2s");
 
             //drawing
             var svg = d3.select(this)
@@ -133,11 +133,11 @@ function drawLineChart(params) {
 
 
             var chart = svg.append('g')
-                           .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')');
+                .attr('transform', 'translate(' + (calc.chartLeftMargin) + ',' + (calc.chartTopMargin + 20) + ')');
 
 
             var chartTitle = svg.append('g')
-                                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
+                .attr('transform', 'translate(' + calc.chartLeftMargin + ',' + calc.chartTopMargin + ')');
 
             // pie title 
             chartTitle.append("text")
@@ -159,17 +159,18 @@ function drawLineChart(params) {
                 .attr('stroke-width', '2')
                 .attr("class", "yaxis");
 
+            
             renderPieChart(attrs, calc);
 
 
-           // ################################ Update Chart ##########################################################
+            // ################################ Update Chart ##########################################################
             updateData = function () {
                 renderPieChart(attrs, calc);
             }
 
             // ################################ Render Chart ##########################################################
             function renderPieChart(attrs, calc) {
-              
+
                 var xScale = d3.scalePoint()
                     .domain(attrs.data.data.map(function (d) { return Number(d.year); }).filter(onlyUnique))
                     .range([0, calc.chartWidth]);
@@ -184,7 +185,7 @@ function drawLineChart(params) {
                     .extent([[-calc.chartLeftMargin, -calc.chartTopMargin], [calc.chartWidth, calc.chartHeight]]);
 
 
-               var groupedData = attrs.data.groupedData;  
+                var groupedData = attrs.data.groupedData;
 
                 var yAxis = d3.axisLeft().scale(yScale).tickSize(-calc.chartWidth);;
                 var xAxis = d3.axisBottom().scale(xScale).tickSize(-calc.chartHeight);
@@ -200,15 +201,43 @@ function drawLineChart(params) {
                     .attr('stroke-width', '0.1px')
                     .attr('stroke', 'lightgrey');
 
-
-
                 var pathline = d3.line()
                     .curve(d3.curveCardinal)
                     .x(function (d) { return xScale(d.year); })
                     .y(function (d) { return yScale(d.value); });
 
+
+                // need for nearest point 
+                var voronoiGroup = chart.selectAll(".voronoi").data([1]);
+
+                var voronoiGroupExit = voronoiGroup.exit().remove();
+
+                voronoiGroup = voronoiGroup.enter()
+                    .append("g")
+                    .merge(voronoiGroup)
+                    .attr('fill', 'none')
+                    .attr('pointer-events', 'all')
+                    .attr("class", "voronoi");
+
+
+                var voronoi = voronoiGroup.selectAll("path")
+                    .data(voronoi.polygons(d3.merge(groupedData.map(function (d) {
+                        return d.data;
+                    }))));
+
+                voronoiExit = voronoi.exit().remove();
+
+                voronoi = voronoi.enter().append("path")
+                    .merge(voronoi)
+                    .attr("d", function (d) { return d ? "M" + d.join("L") + "Z" : null; })
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout);
+
+
+
+
                 var line = chart.selectAll(".pathline")
-                                .data(groupedData);
+                    .data(groupedData);
 
                 var lineExit = line.exit().remove();
 
@@ -222,6 +251,7 @@ function drawLineChart(params) {
                     .attr('stroke-width', '3')
                     .attr("fill", 'none')
                     .attr('class', 'pathline');
+
 
                 // need for voronoi  polygon 
                 line.each(function (d) {
@@ -249,7 +279,7 @@ function drawLineChart(params) {
                     .attr('width', 0)
 
 
-                var dots = chart.selectAll("circle")
+                var dots = chart.selectAll(".circle")
                     .data(function (d) { d; return attrs.data.data; });
 
                 var dotsExit = dots.exit().remove();
@@ -270,47 +300,50 @@ function drawLineChart(params) {
                     .attr("cy", function (d) { return yScale(Number(d.value)); });
 
 
-                var focus = chart
-                                //  .selectAll()
-                                //  .data([1])
-                                 .append("g")
-                                 .attr("transform", "translate(-100,-100)")
-                                 .attr("class", "focus");
 
-                focus.append("circle")
+                var focus = chart.selectAll(".focus").data([1]);
+
+                var focusExit = focus.exit().remove();
+
+                focus = focus.enter()
+                    .append("g")
+                    .merge(focus)
+                    .attr("transform", "translate(-100,-100)")
+                    .attr("class", "focus");
+
+
+
+                var toolCircle = focus.selectAll('.toolCircle').data([1]);
+
+
+                var toolCircleExit = toolCircle.exit().remove();
+
+                toolCircle = toolCircle.enter()
+                    .append("circle")
+                    .merge(toolCircle)
                     .attr("r", 3)
-                    .attr("class", "toolCircle")
                     .attr('fill', '#2F4F4F')
                     .attr('stroke', '#8FBC8F')
                     .attr("stroke-width", 5)
-                    .attr('opacity', '0.5');
-
-                focus.append("text")
-                    .attr("y", -10);
-
-                var voronoiGroup = chart.append("g")
-                    .attr('fill', 'none')
-                    .attr('pointer-events', 'all')
-                    .attr("class", "voronoi");
+                    .attr('opacity', '0.5')
+                    .attr("class", "toolCircle");
 
 
+                var toolText = focus.selectAll('.toolText').data([1]);
 
-                var voronoi =  voronoiGroup.selectAll("path")
-                                           .data(voronoi.polygons(d3.merge(groupedData.map(function (d) {
-                                                return d.data;
-                                            }))));
+                var toolTextExit = toolText.exit().remove();
 
-                voronoiExit = voronoi.exit().remove();
+                toolText = toolText.enter()
+                    .append("text")
+                    .merge(toolText)
+                    .attr("y", -10)
+                    .attr("class", "toolText");
 
-                voronoi = voronoi.enter().append("path")
-                    .merge(voronoi)
-                    .attr("d", function (d) { return d ? "M" + d.join("L") + "Z" : null; })
-                    .on("mouseover", mouseover)
-                    .on("mouseout", mouseout);
 
 
                 // -----------------------------------  Events  -----------------------------------
                 line.on('mouseenter', function (d) {
+                    debugger;
                     // shadow 
                     d3.select(this).attr('filter', calc.filterUrl);
 
@@ -331,38 +364,37 @@ function drawLineChart(params) {
                 });
 
 
-                // dots.on("mouseover", function (d) {
-                //     circle = d3.select(this);
-                //     circleTransition(circle);
-                // })
-                // dots.on("mouseout", function (d) {
-                //     circle = d3.select(this)
-                //         .transition()
-                //         .duration(500)
-                //         .attr("r", 3)
-                //         .attr("stroke-width", 5);
-                // });
+                dots.on('mouseenter', function(d){
+                    displayTooltip(
+                        true,
+                        chart,
+                        attrs.tooltipRows,
+                        'bottom',
+                        d3.event.pageX-66,
+                        d3.event.pageY-80,
+                        d,
+                        calc.dropShadowUrl
+                    );
+
+                });
+
+                dots.on('mouseout', function(d){
+                    displayTooltip(false, chart);
+                });
 
 
-
-
+                // voronoi events
                 function mouseover(d) {
-                    debugger;
-                    d3.select(d.data.line).classed("city--hover", true);
-                    d.data.line.parentNode.appendChild(d.data.line);
-                   
-                   focus.select("circle").style('display','inline');
+
+                    focus.selectAll(".toolCircle").style('display', 'inline');
                     focus.attr("transform", "translate(" + xScale(d.data.year) + "," + yScale(d.data.value) + ")");
-                    focus.select("text").text(d.data.region + ' - ' + format(d.data.value));
-                    
-                    circle = focus.selectAll('circle');
+ 
+                    circle = focus.select('.toolCircle');
                     circleTransition(circle);
                 }
 
                 function mouseout(d) {
-                    debugger;
-                    d3.select(d.data.line).classed("city--hover", false);
-                    focus.select("circle").style('display','none');
+                    focus.selectAll(".toolCircle").style('display', 'none');
                 }
 
 
@@ -408,14 +440,6 @@ function drawLineChart(params) {
                 }
             }
 
-            function charMouseOver() {
-                var mouseX = d3.event.pageX - calc.chartLeftMargin;
-                var mouseY = d3.event.pageY - calc.chartTopMargin - 20;
-
-                console.log('mouseX ' + mouseX + ' mouseY ' + mouseY);
-            }
-
-
         });
     };
 
@@ -423,7 +447,7 @@ function drawLineChart(params) {
 
 
 
-    ['svgWidth', 'svgHeight'].forEach(key => {
+    ['svgWidth', 'svgHeight','tooltipRows'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;
