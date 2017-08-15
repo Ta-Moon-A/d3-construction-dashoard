@@ -66,6 +66,8 @@ function drawLineChart(params) {
 
     //innerFunctions
     var updateData;
+    var remoteUpdateStart;
+    var remoteUpdateEnd;
 
 
     //main chart object
@@ -87,7 +89,8 @@ function drawLineChart(params) {
             var svg = d3.select(this)
                 .append('svg')
                 .attr('width', attrs.svgWidth)
-                .attr('height', attrs.svgHeight);
+                .attr('height', attrs.svgHeight)
+                .style('overflow', 'visible');
 
             //################################   FILTERS  &   SHADOWS  ##################################
 
@@ -159,7 +162,7 @@ function drawLineChart(params) {
                 .attr('stroke-width', '2')
                 .attr("class", "yaxis");
 
-            
+
             renderPieChart(attrs, calc);
 
 
@@ -167,6 +170,8 @@ function drawLineChart(params) {
             updateData = function () {
                 renderPieChart(attrs, calc);
             }
+
+
 
             // ################################ Render Chart ##########################################################
             function renderPieChart(attrs, calc) {
@@ -264,7 +269,13 @@ function drawLineChart(params) {
                 line.transition()
                     .ease(d3.easeLinear)
                     .duration(attrs.transTimeOut)
-                    .attrTween("d", function (d) { return pathTween(pathline(d.data), 4, this) });
+                    .attrTween("d", function (d) { return pathTween(pathline(d.data), 4, this) })
+                    .on('start', function () {
+                        dots.attr('opacity', '0');
+                    })
+                    .on('end', function () {
+                        dots.attr('opacity', '0.5');
+                    });
 
 
                 var rect = chart.selectAll('.overlay').data(['overlay']);
@@ -356,30 +367,50 @@ function drawLineChart(params) {
                         else return 1; // a is the hovered element, bring "a" to the front     
                     });
 
+                     attrs.onPieHoverStartRemotely(d);
                 });
 
 
                 line.on('mouseout', function (d) {
                     line.attr('opacity', 1).attr('filter', 'none');
+                    attrs.onPieHoverEndRemotely(d);
                 });
 
 
-                dots.on('mouseenter', function(d){
+                dots.on('mouseenter', function (d) {
+                    debugger;
                     displayTooltip(
                         true,
                         chart,
                         attrs.tooltipRows,
                         'bottom',
-                        d3.event.pageX-66,
-                        d3.event.pageY-80,
+                        d3.event.pageX - 66,
+                        d3.event.pageY - 80,
                         d,
                         calc.dropShadowUrl
                     );
 
+
+
+                    // shadow 
+                    line.filter(v => v.region == d.region).attr('filter', calc.filterUrl);
+
+                    // visibility 
+                    line.filter(v => v.region != d.region).attr('opacity', attrs.slicesOpacity);
+
+                    // get selected line upper 
+                    chart.selectAll(".pathline").sort(function (a, b) { // select the parent and sort the path's     
+                        if (a.region != d.region) return -1; // a is not the hovered element, send "a" to the back     
+                        else return 1; // a is the hovered element, bring "a" to the front     
+                    });
+
+
+
                 });
 
-                dots.on('mouseout', function(d){
+                dots.on('mouseout', function (d) {
                     displayTooltip(false, chart);
+                    line.attr('opacity', 1).attr('filter', 'none');
                 });
 
 
@@ -388,7 +419,7 @@ function drawLineChart(params) {
 
                     focus.selectAll(".toolCircle").style('display', 'inline');
                     focus.attr("transform", "translate(" + xScale(d.data.year) + "," + yScale(d.data.value) + ")");
- 
+
                     circle = focus.select('.toolCircle');
                     circleTransition(circle);
                 }
@@ -398,7 +429,26 @@ function drawLineChart(params) {
                 }
 
 
+                // -------------------------------------  remote update -----------------------------------------------
+                remoteUpdateStart = function (d) {
+                    debugger;
+                    // shadow 
+                    line.filter(v => v.region == d.data.label).attr('filter', calc.filterUrl);
 
+                    // visibility 
+                    line.filter(v => v.region != d.data.label).attr('opacity', attrs.slicesOpacity);
+
+                    // get selected line upper 
+                    chart.selectAll(".pathline").sort(function (a, b) { // select the parent and sort the path's     
+                        if (a.region != d.region) return -1; // a is not the hovered element, send "a" to the back     
+                        else return 1; // a is the hovered element, bring "a" to the front     
+                    });
+
+                }
+
+                remoteUpdateEnd = function (d) {
+                    line.attr('opacity', 1).attr('filter', 'none');
+                }
                 // -------------------------------------  helpers -----------------------------------------------
                 function circleTransition(circle) {
 
@@ -447,7 +497,7 @@ function drawLineChart(params) {
 
 
 
-    ['svgWidth', 'svgHeight','tooltipRows'].forEach(key => {
+    ['svgWidth', 'svgHeight', 'tooltipRows'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;
@@ -468,6 +518,31 @@ function drawLineChart(params) {
             updateData();
         }
         return main;
+    }
+
+
+
+    main.onLineHoverStart = function(chartUpdateFunc)
+    {
+        attrs.onPieHoverStartRemotely = chartUpdateFunc;
+        return main;
+    };
+
+
+    main.onLineHoverEnd = function(chartUpdateFunc)
+    {
+        attrs.onPieHoverEndRemotely = chartUpdateFunc;
+        return main;
+    };
+
+
+    main.remoteUpdateStart = function (d) {
+        remoteUpdateStart(d);
+    }
+
+
+    main.remoteUpdateEnd = function (d) {
+        remoteUpdateEnd(d);
     }
 
 

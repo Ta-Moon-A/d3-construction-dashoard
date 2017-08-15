@@ -33,8 +33,8 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
         crossorigin="anonymous">
 
-    
-    <div class="container" style ="width: 100%; margin-top : 30px">
+
+    <div class="container" style="width: 100%; margin-top : 30px">
         <div class="row">
             <div class="col-md-6">
                 <div id="myLine" style=" background-color : #f1f1f1">
@@ -94,7 +94,15 @@
                     data: result,
                     groupedData: groupedDataForLine
                 })
-                .tooltipRows([{ left: "Region", right: "{region}" }, { left: "Number", right: "{value}" }]);
+                .tooltipRows([{ left: "Region", right: "{region}" }, { left: "Number", right: "{value}" }])
+                .onLineHoverStart(d => {
+                   
+                    pie1Chart.remoteUpdateStart(d);
+                })
+                .onLineHoverEnd(d => {
+                    
+                    pie1Chart.remoteUpdateEnd(d);
+                });
 
             pie1Chart = drawPieChart()
                 .data({
@@ -106,6 +114,14 @@
                 })
                 .color('#796799')
                 .tooltipRows([{ left: "Region", right: "{label}" }, { left: "Quantity", right: "{formatedValue}" }])
+                .onPieSliceHoverStart(d => {
+                   
+                    lineChart.remoteUpdateStart(d);
+                })
+                .onPieSliceHoverEnd(d => {
+                    
+                    lineChart.remoteUpdateEnd(d);
+                });
 
             pie2Chart = drawPieChart()
                 .data({

@@ -33,7 +33,7 @@ function drawPieChart(params) {
         radius: 150,
         slicesOpacity: 0.3,
         transTimeOut: 1000,
-        shuffleSlices : true
+        shuffleSlices: true
     };
 
     var METRONIC_DARK_COLORS = [//"#c5bf66","#BF55EC","#f36a5a","#EF4836","#9A12B3","#c8d046","#E26A6A","#32c5d2",
@@ -58,6 +58,8 @@ function drawPieChart(params) {
 
     //innerFunctions
     var updateData;
+    var remoteUpdateStart;
+    var remoteUpdateEnd;
 
 
     //main chart object
@@ -73,7 +75,7 @@ function drawPieChart(params) {
             calc.chartHeight = attrs.svgHeight - attrs.marginBottom - calc.chartTopMargin;
 
             calc.radius = Math.min(calc.chartWidth, calc.chartHeight) / 3;
-            calc.labelArcRadius =  calc.radius * 0.6;
+            calc.labelArcRadius = calc.radius * 0.6;
 
             var format = d3.format(".2s");
 
@@ -130,7 +132,7 @@ function drawPieChart(params) {
             // ################################ FILTERS  &   SHADOWS  END ##################################
 
             var chart = svg.append('g')
-                .attr('transform', 'translate(' + ((calc.chartWidth / 2)  + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin + 20) + ')');
+                .attr('transform', 'translate(' + ((calc.chartWidth / 2) + calc.chartLeftMargin) + ',' + (calc.chartHeight / 2 + calc.chartTopMargin + 20) + ')');
 
 
             var chartTitle = svg.append('g')
@@ -287,9 +289,9 @@ function drawPieChart(params) {
                     .style("font-size", "13px")
                     .attr("transform", function (d) {
                         var rotationAngle = midAngle(d) * (180 / Math.PI);
-                         if(rotationAngle>180)rotationAngle-=180;
-                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2) }) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
-                        
+                        if (rotationAngle > 180) rotationAngle -= 180;
+                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2)}) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
+
                     })
                     .merge(innerLabel)
                     .text(function (d) { return d.data.label; })
@@ -302,10 +304,10 @@ function drawPieChart(params) {
                     .style("font-size", "13px")
                     .attr("class", "innerLabel")
                     .attr("transform", function (d) {
-                       var rotationAngle = midAngle(d) * (180 / Math.PI)-90;
-                        if(rotationAngle>90)rotationAngle-=180;
+                        var rotationAngle = midAngle(d) * (180 / Math.PI) - 90;
+                        if (rotationAngle > 90) rotationAngle -= 180;
 
-                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2) }) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
+                        return `translate(${parseFloat(Math.round(labelArc.centroid(d)[0] * 100) / 100).toFixed(2)},${parseFloat(Math.round(labelArc.centroid(d)[1] * 100) / 100).toFixed(2)}) rotate(${parseFloat(Math.round(rotationAngle * 100) / 100).toFixed(2)})`;
                     });
 
                 // ----------------- end inner labels --------------
@@ -427,6 +429,24 @@ function drawPieChart(params) {
 
                 // --------------- end  outer labels ---------------------
 
+
+                // -------------------------------------  remote update -----------------------------------------------
+                remoteUpdateStart = function (d) {
+                    path.filter(v => v.data.label == d.region).attr('filter', calc.filterUrl);
+                    path.filter(v => v.data.label != d.region).attr('opacity', attrs.slicesOpacity);
+
+                    outerLabel.filter(v => v.data.label != d.region).attr('opacity', attrs.slicesOpacity);
+                    startline.filter(v => v.data.label != d.region).attr('opacity', attrs.slicesOpacity);
+                    endline.filter(v => v.data.label != d.region).attr('opacity', attrs.slicesOpacity);
+                }
+
+                remoteUpdateEnd = function (d) {
+                    path.attr('opacity', 1).attr('filter', 'none');
+                    outerLabel.attr('opacity', 1);
+                    startline.attr('opacity', 1);
+                    endline.attr('opacity', 1);
+                }
+
                 // ################################  Events  ################################################################################################  
 
                 path.on('mouseenter', function (d) {
@@ -448,6 +468,7 @@ function drawPieChart(params) {
                     outerLabel.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                     startline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
                     endline.filter(v => v.data.label != d.data.label).attr('opacity', attrs.slicesOpacity);
+                    attrs.onLineHoverStartRemotely(d);
                 });
 
 
@@ -457,6 +478,7 @@ function drawPieChart(params) {
                     outerLabel.attr('opacity', 1);
                     startline.attr('opacity', 1);
                     endline.attr('opacity', 1);
+                    attrs.onLineHoverEndRemotely(d);
                 });
 
 
@@ -466,7 +488,7 @@ function drawPieChart(params) {
     };
 
 
-    ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows','shuffleSlices'].forEach(key => {
+    ['svgWidth', 'svgHeight', 'showCenterText', 'color', 'tooltipRows', 'shuffleSlices'].forEach(key => {
         // Attach variables to main function
         return main[key] = function (_) {
             var string = `attrs['${key}'] = _`;
@@ -485,6 +507,31 @@ function drawPieChart(params) {
         }
         return main;
     }
+
+    main.onPieSliceHoverStart = function(chartUpdateFunc)
+    {
+        attrs.onLineHoverStartRemotely = chartUpdateFunc;
+        return main;
+    };
+
+
+    main.onPieSliceHoverEnd = function(chartUpdateFunc)
+    {
+        attrs.onLineHoverEndRemotely = chartUpdateFunc;
+        return main;
+    };
+
+    main.remoteUpdateStart = function (d) {
+        remoteUpdateStart(d);
+    }
+
+
+    main.remoteUpdateEnd = function (d) {
+        remoteUpdateEnd(d);
+    }
+
+
+
 
     return main;
 }
